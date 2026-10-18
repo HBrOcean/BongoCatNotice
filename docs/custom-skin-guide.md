@@ -497,6 +497,65 @@ python Tools/check_skin.py --prefix Assets/skin/MyCat
 
 ---
 
+## 14. 免编译热加载（外部皮肤目录）
+
+从 0.1.0.5 起，**不必再改 `Assets/` 重新编译**：把皮肤放进用户目录，重启程序就能在列表里看到。
+
+### 14.1 目录位置
+
+| 平台 | 路径 |
+|---|---|
+| Windows | `%AppData%\BongoCatNotice\skins\` |
+| Linux | `~/.config/BongoCatNotice/skins/` |
+| macOS | `~/Library/Application Support/BongoCatNotice/skins/` |
+
+首次启动会自动创建这个目录。
+
+### 14.2 每套皮肤一个子目录
+
+```
+skins/
+└── MyCat/
+    ├── skin.json
+    ├── MyCatLeft.png
+    ├── MyCatLeftPunch.png
+    ├── MyCatRight.png
+    ├── MyCatRightPunch.png
+    └── MyCatIcon.png
+```
+
+`skin.json`：
+
+```json
+{
+  "name": "My Cat",
+  "description": "",
+  "modified": "20261018T000000Z",
+  "created": "20261018T000000Z",
+  "icon": "MyCatIcon.png",
+  "image": ["MyCatLeft.png", "MyCatLeftPunch.png", "MyCatRight.png", "MyCatRightPunch.png"],
+  "tags": "quality:common"
+}
+```
+
+规则：
+
+- `image` 顺序必须是 **Left / LeftPunch / Right / RightPunch**
+- 四张图必须都存在，缺一张这套皮肤会被**静默跳过**（不影响其它皮肤）
+- 名字可以重复，内部 ID 用目录名区分（`ext_MyCat`）
+- 需要重启程序生效（列表在启动时扫描）
+- `skin.json` 写坏也只是跳过这一套，不会影响程序启动
+
+### 14.3 和"编译进程序集"的区别
+
+| | 内嵌皮肤（`Assets/skin/`） | 外部皮肤（`skins/`） |
+|---|---|---|
+| 生效方式 | 重新编译 | 放入目录后重启 |
+| 适合 | 项目自带资源、要分发给所有人 | 自己用、临时试做、不想装 SDK |
+| 分布 | 随 exe 一起 | 只在本机 |
+
+---
+
 ## 附：最小可用条目模板
 
 ```json

@@ -126,6 +126,9 @@ namespace BongoCatNotice.Utilities
         public string BackgroundStart { get; set; } = "#FFF8C9";
         /// <summary>自定义渐变结束色(#RRGGBB)</summary>
         public string BackgroundEnd { get; set; } = "#FFD19A";
+
+        /// <summary>Ctrl + ? 打开设置面板的字母键(Y/U/I/O/P/L)</summary>
+        public string HotkeyKey { get; set; } = "Y";
     }
 
     [JsonSerializable(typeof(AppConfig))]

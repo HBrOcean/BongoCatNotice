@@ -7,7 +7,7 @@ namespace BongoCatNotice.Utilities
     {
         public static string ProjectName { get; } = "BongoCatNotice";
         public static string Name { get; } = "BongoCatNotice";
-        public static string Version { get; } = "0.1.0.3";
+        public static string Version { get; } = "0.1.0.5";
         public static string Url { get; } = "https://github.com/HBrOcean/BongoCatNotice";
         public static int WindowWidth { get; } = 256;
         public static int WindowHeight { get; } = 256;
@@ -68,6 +68,13 @@ namespace BongoCatNotice.Utilities
         // "layer"(默认,四帧分层) 或 "full"(整猫帧:[静止, 左击, 右击, 占位])
         [JsonPropertyName("mode")]
         public string? Mode { get; set; }
+
+        /// <summary>
+        /// 外部皮肤所在目录(热加载)。内嵌皮肤为 null。
+        /// 不参与序列化，仅运行时用来定位图片文件。
+        /// </summary>
+        [JsonIgnore]
+        public string? ExternalDir { get; set; }
     }
 
     public class HatItem : ItemBase
@@ -78,6 +85,11 @@ namespace BongoCatNotice.Utilities
 
     [JsonSerializable(typeof(ItemsJson))]
     public partial class ItemsJsonContext : JsonSerializerContext { }
+
+    /// <summary>外部皮肤清单解析（热加载用）</summary>
+    [JsonSerializable(typeof(SkinItem))]
+    [JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
+    public partial class SkinJsonContext : JsonSerializerContext { }
 
     public class HatOffsetJson
     {

@@ -11,6 +11,7 @@ namespace BongoCatNotice.ViewModels
         public static bool IsWindows => OperatingSystem.IsWindows();
 
         public static string DefaultSkinText => Localization.Instance["SettingWindow.DefaultSkin.Header"];
+        public static string SearchPlaceholderText => Localization.Instance["SettingWindow.DefaultSkin.Search"];
         public static string CustomSkinText => Localization.Instance["SettingWindow.CustomSkin.Header"];
         public static string EmptySkinText => Localization.Instance["SettingWindow.CustomSkin.EmptySkin"];
         public static string SettingText => Localization.Instance["SettingWindow.Setting.Header"];
@@ -37,6 +38,7 @@ namespace BongoCatNotice.ViewModels
         public static string ThirtyMinutesText => Localization.Instance["SettingWindow.Setting.ThirtyMinutes"];
         public static string VersionText => Localization.Instance["SettingWindow.Setting.Version"];
         public static string BackgroundText => Localization.Instance["SettingWindow.Setting.Background"];
+        public static string HotkeyText => Localization.Instance["SettingWindow.Setting.Hotkey"];
         public static string BgYellowOrangeText => Localization.Instance["SettingWindow.Setting.BgYellowOrange"];
         public static string BgBlueWhiteText => Localization.Instance["SettingWindow.Setting.BgBlueWhite"];
         public static string BgCustomText => Localization.Instance["SettingWindow.Setting.BgCustom"];

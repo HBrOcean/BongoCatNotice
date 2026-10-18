@@ -15,6 +15,15 @@ namespace BongoCatNotice.Utilities
         private static SkinManager instance = null!;
         private static readonly object obj = new();
 
+        /// <summary>
+        /// 外部皮肤目录：%AppData%/BongoCatNotice/skins/
+        /// 放进去的皮肤无需重新编译即可出现在列表里。
+        /// </summary>
+        private static readonly string ExternalSkinRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            GlobalHelper.Name,
+            "skins");
+
         private ItemsJson items;
         private HatOffsetJson[] offset;
         private string _skinId = "0";
@@ -33,6 +42,7 @@ namespace BongoCatNotice.Utilities
             offset = JsonSerializer.Deserialize(offsetJson, HatOffsetJsonContext.Default.HatOffsetJsonArray)!;
 
             DefaultImages();
+            LoadExternalSkins();
             RebuildImageCache();
         }
 
@@ -72,7 +82,7 @@ namespace BongoCatNotice.Utilities
                     SkinItem item = Items.Skin[_skinId.ToString()];
                     _skinMode = string.IsNullOrWhiteSpace(item.Mode) ? "layer" : item.Mode!;
                     foreach (string img in item.Image)
-                        _skinImage.Add(new Bitmap(AssetLoader.Open(new Uri($"avares://{GlobalHelper.ProjectName}/Assets/skin/{img}"))));
+                        _skinImage.Add(OpenSkinBitmap(item, img));
                 }
 
                 RebuildImageCache();
@@ -136,6 +146,66 @@ namespace BongoCatNotice.Utilities
         {
             HatOffsetJson hat = offset.FirstOrDefault(hat => hat.Name == name)!;
             return hat != null ? hat.Position : new Position { X = 30, Y = -70 };
+        }
+
+        /// <summary>
+        /// 扫描外部皮肤目录并合并进列表。
+        /// 目录结构：skins/&lt;皮肤目录&gt;/skin.json + 四帧 PNG + 图标。
+        /// 任何单个皮肤出错都不影响其它皮肤和程序启动。
+        /// </summary>
+        private void LoadExternalSkins()
+        {
+            try
+            {
+                if (!Directory.Exists(ExternalSkinRoot))
+                {
+                    Directory.CreateDirectory(ExternalSkinRoot);
+                    return;
+                }
+
+                foreach (string dir in Directory.GetDirectories(ExternalSkinRoot))
+                {
+                    string manifest = Path.Combine(dir, "skin.json");
+                    if (!File.Exists(manifest))
+                        continue;
+
+                    try
+                    {
+                        SkinItem? item = JsonSerializer.Deserialize(
+                            File.ReadAllText(manifest),
+                            SkinJsonContext.Default.SkinItem);
+
+                        if (item is null || item.Image is null || item.Image.Length != 4)
+                            continue;
+
+                        if (item.Image.Any(file => !File.Exists(Path.Combine(dir, file))))
+                            continue;
+
+                        item.ExternalDir = dir;
+                        items.Skin["ext_" + Path.GetFileName(dir)] = item;
+                    }
+                    catch
+                    {
+                        // 单个 skin.json 写坏就跳过这一套
+                    }
+                }
+            }
+            catch
+            {
+                // 目录不可读时忽略，程序照常以内嵌皮肤运行
+            }
+        }
+
+        /// <summary>外部皮肤读文件，内嵌皮肤读 avares 资源</summary>
+        private static Bitmap OpenSkinBitmap(SkinItem item, string fileName)
+        {
+            if (!string.IsNullOrEmpty(item.ExternalDir))
+            {
+                using FileStream stream = File.OpenRead(Path.Combine(item.ExternalDir, fileName));
+                return new Bitmap(stream);
+            }
+
+            return new Bitmap(AssetLoader.Open(new Uri($"avares://{GlobalHelper.ProjectName}/Assets/skin/{fileName}")));
         }
 
         public static IImmutableSolidColorBrush GetQuality(string tags)

@@ -37,6 +37,10 @@ namespace BongoCatNotice.Views
         private double _lastWindowWidth = 0;
         private double _lastWindowHeight = 0;
         private bool _positionCompensationReady = false;
+        // 边缘吸附：拖拽停稳后再对齐，避免拖动过程中被反复拉回
+        private readonly DispatcherTimer _snapTimer = new() { Interval = TimeSpan.FromMilliseconds(220) };
+        private bool _applyingSnap = false;
+        private double _lastAppliedScaling = 1;
         //private double LastHeight = 0;
         //private CancellationTokenSource? _cancellationTokenSource;
 
@@ -62,6 +66,84 @@ namespace BongoCatNotice.Views
             SetWindow();
             SetRandomSkin();
             ListeningPress();
+            PositionChanged += MainWindow_PositionChanged;
+            _snapTimer.Tick += (_, _) =>
+            {
+                _snapTimer.Stop();
+                ApplyAdsorption();
+            };
+            _lastAppliedScaling = RenderScaling <= 0 ? 1 : RenderScaling;
+        }
+
+        private void MainWindow_PositionChanged(object? sender, PixelPointEventArgs e)
+        {
+            // 拖到不同缩放比的显示器时重新计算窗口尺寸，否则包围盒仍按旧 DPI 计算会错位
+            double scaling = RenderScaling <= 0 ? 1 : RenderScaling;
+            if (Math.Abs(scaling - _lastAppliedScaling) > 0.01)
+            {
+                _lastAppliedScaling = scaling;
+                _lastWindowWidth = 0;
+                _lastWindowHeight = 0;
+                SetWindowSize();
+            }
+
+            if (!GlobalHelper.Config.Adsorption || _applyingSnap)
+                return;
+
+            // 拖拽期间位置连续变化，等停稳再吸附
+            _snapTimer.Stop();
+            _snapTimer.Start();
+        }
+
+        /// <summary>
+        /// 边缘吸附：窗口靠近屏幕工作区边缘时自动贴齐。
+        /// 距离阈值按物理像素计算，适配不同 DPI。
+        /// </summary>
+        private void ApplyAdsorption()
+        {
+            if (!GlobalHelper.Config.Adsorption || !_positionCompensationReady || _applyingSnap)
+                return;
+
+            Screen? screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+            if (screen is null)
+                return;
+
+            PixelRect wa = screen.WorkingArea;
+            double rs = RenderScaling <= 0 ? 1 : RenderScaling;
+
+            int winWidth = (int)Math.Round(Bounds.Width * rs);
+            int winHeight = (int)Math.Round(Bounds.Height * rs);
+            if (winWidth <= 0 || winHeight <= 0)
+                return;
+
+            const int snapDistance = 18;
+            int x = Position.X;
+            int y = Position.Y;
+            int right = wa.X + wa.Width;
+            int bottom = wa.Y + wa.Height;
+
+            if (Math.Abs(x - wa.X) <= snapDistance)
+                x = wa.X;
+            else if (Math.Abs(right - (x + winWidth)) <= snapDistance)
+                x = right - winWidth;
+
+            if (Math.Abs(y - wa.Y) <= snapDistance)
+                y = wa.Y;
+            else if (Math.Abs(bottom - (y + winHeight)) <= snapDistance)
+                y = bottom - winHeight;
+
+            if (x == Position.X && y == Position.Y)
+                return;
+
+            _applyingSnap = true;
+            try
+            {
+                Position = new PixelPoint(x, y);
+            }
+            finally
+            {
+                _applyingSnap = false;
+            }
         }
 
         private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
@@ -240,6 +322,20 @@ namespace BongoCatNotice.Views
             RandomSkin(GlobalHelper.Config.RandomSkin);
         }
 
+        /// <summary>
+        /// 把配置里的字母映射成 SharpHook 键码。
+        /// 只开放几个不与系统常用快捷键冲突的字母。
+        /// </summary>
+        private static KeyCode HotkeyKeyCode() => GlobalHelper.Config.HotkeyKey?.ToUpperInvariant() switch
+        {
+            "U" => KeyCode.VcU,
+            "I" => KeyCode.VcI,
+            "O" => KeyCode.VcO,
+            "P" => KeyCode.VcP,
+            "L" => KeyCode.VcL,
+            _ => KeyCode.VcY
+        };
+
         private void ListeningPress()
         {
             Task task = Task.Run(() =>
@@ -248,8 +344,8 @@ namespace BongoCatNotice.Views
 
                 hook.KeyPressed += (sender, e) =>
                 {
-                    // 全局快捷键 Ctrl+Y:打开设置面板(托盘菜单之外的快捷入口)
-                    if (e.Data.KeyCode == KeyCode.VcY)
+                    // 全局快捷键 Ctrl + 字母(默认 Y):打开设置面板(托盘菜单之外的快捷入口)
+                    if (e.Data.KeyCode == HotkeyKeyCode())
                     {
                         bool ctrlHeld = _activeKeys.ContainsKey(KeyCode.VcLeftControl)
                                      || _activeKeys.ContainsKey(KeyCode.VcRightControl);
@@ -631,6 +727,10 @@ namespace BongoCatNotice.Views
         public void TaskbarAdsorption(bool isAdsorption)
         {
             GlobalHelper.Config.Adsorption = isAdsorption;
+
+            // 开启时立刻贴一次边，不用等下次拖动
+            if (isAdsorption)
+                ApplyAdsorption();
         }
     }
 }

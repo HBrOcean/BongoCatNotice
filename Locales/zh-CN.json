@@ -8,7 +8,8 @@
     },
     "SettingWindow": {
         "DefaultSkin": {
-            "Header": "皮肤"
+            "Header": "皮肤",
+            "Search": "搜索皮肤 / 帽子…"
         },
         "CustomSkin": {
             "Header": "自定义皮肤",
@@ -63,7 +64,8 @@
             "BgCustom": "自定义",
             "BgStart": "起始色",
             "BgEnd": "结束色",
-            "BgHint": "支持 #RRGGBB 或 #AARRGGBB，修改后立即生效并保存"
+            "BgHint": "支持 #RRGGBB 或 #AARRGGBB，修改后立即生效并保存",
+            "Hotkey": "快捷键"
         }
     }
 }

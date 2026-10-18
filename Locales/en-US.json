@@ -8,7 +8,8 @@
     },
     "SettingWindow": {
         "DefaultSkin": {
-            "Header": "Skin"
+            "Header": "Skin",
+            "Search": "Search skins / hats…"
         },
         "CustomSkin": {
             "Header": "Custom Skin",
@@ -63,7 +64,8 @@
             "BgCustom": "Custom",
             "BgStart": "Start color",
             "BgEnd": "End color",
-            "BgHint": "Accepts #RRGGBB or #AARRGGBB, applied and saved immediately"
+            "BgHint": "Accepts #RRGGBB or #AARRGGBB, applied and saved immediately",
+            "Hotkey": "Hotkey"
         }
     }
 }

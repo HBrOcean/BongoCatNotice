@@ -70,9 +70,17 @@
 
         <TabItem Header="{Binding DefaultSkinText}"
                  FontSize="12">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="-5,0,0,0">
-                <WrapPanel x:Name="DefaultSkinList" Margin="5,10,0,10" Orientation="Horizontal"></WrapPanel>
-            </ScrollViewer>
+            <DockPanel>
+                <TextBox x:Name="SearchBox"
+                         DockPanel.Dock="Top"
+                         Margin="5,8,12,0"
+                         FontSize="12"
+                         Watermark="{Binding SearchPlaceholderText}"
+                         TextChanged="OnSearchTextChanged"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="-5,0,0,0">
+                    <WrapPanel x:Name="DefaultSkinList" Margin="5,10,0,10" Orientation="Horizontal"></WrapPanel>
+                </ScrollViewer>
+            </DockPanel>
         </TabItem>
 
         <TabItem Header="{Binding CustomSkinText}"
@@ -104,6 +112,20 @@
                                   ToolTip.VerticalOffset="0"
                                   ToolTip.Tip="{Binding LanguageToolTipText}"
                                   SelectionChanged="OnLangListSelectionChanged"/>
+                    </DockPanel>
+                    <DockPanel>
+                        <Label Content="{Binding HotkeyText}" VerticalAlignment="Center"/>
+                        <ComboBox x:Name="HotkeyComboBox"
+                                  Margin="10,0,25,0"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnHotkeyChanged">
+                            <ComboBoxItem Content="Ctrl + Y"/>
+                            <ComboBoxItem Content="Ctrl + U"/>
+                            <ComboBoxItem Content="Ctrl + I"/>
+                            <ComboBoxItem Content="Ctrl + O"/>
+                            <ComboBoxItem Content="Ctrl + P"/>
+                            <ComboBoxItem Content="Ctrl + L"/>
+                        </ComboBox>
                     </DockPanel>
                     <CheckBox Content="{Binding TopmostText}"
                               IsChecked="{Binding TopmostValue}"

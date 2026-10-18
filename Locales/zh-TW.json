@@ -8,7 +8,8 @@
     },
     "SettingWindow": {
         "DefaultSkin": {
-            "Header": "皮膚"
+            "Header": "皮膚",
+            "Search": "搜尋皮膚 / 帽子…"
         },
         "CustomSkin": {
             "Header": "自訂皮膚",
@@ -63,7 +64,8 @@
             "BgCustom": "自訂",
             "BgStart": "起始色",
             "BgEnd": "結束色",
-            "BgHint": "支援 #RRGGBB 或 #AARRGGBB，修改後立即生效並儲存"
+            "BgHint": "支援 #RRGGBB 或 #AARRGGBB，修改後立即生效並儲存",
+            "Hotkey": "快速鍵"
         }
     }
 }

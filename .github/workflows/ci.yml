@@ -33,3 +33,8 @@ jobs:
       # PR 阶段不跑 AOT 发布,先保证编译通过、节省 CI 时间
       - name: Build
         run: dotnet build ./BongoCatNotice.csproj -c Release -p:PublishAot=false --no-restore
+
+      # 格式漂移提示(不阻塞合并)
+      - name: Format check
+        run: dotnet format ./BongoCatNotice.csproj --verify-no-changes --severity warn
+        continue-on-error: true

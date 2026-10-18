@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -22,12 +23,15 @@ public partial class SettingWindow : Window
     private Border? LastHat;
     // 背景控件初始化期间抑制事件回调，避免打开窗口就写盘
     private bool _backgroundUiReady;
+    // 用于搜索过滤：格子与其显示名
+    private readonly List<(Border Cell, string Name)> _allCells = [];
 
     public SettingWindow()
     {
         InitializeComponent();
         DataContext = new SettingViewModel();
         InitBackgroundSettings();
+        InitHotkeySettings();
         Closed += (s, e) =>
         {
             CurrentInstance = null;
@@ -46,6 +50,28 @@ public partial class SettingWindow : Window
             LangListComboBox.Items.Add(lang.Value);
             if (GlobalHelper.Config.Language == lang.Key)
                 LangListComboBox.SelectedIndex = LangListComboBox.Items.Count - 1;
+        }
+    }
+
+    /// <summary>
+    /// 按目标显示宽度解码内嵌资源。
+    /// 皮肤/帽子图标原始为 256×256，直接 new Bitmap 会按全尺寸解码：
+    /// 227 + 387 = 614 个格子 → 峰值约 150MB 非托管内存。按 64px 解码可降到几 MB。
+    /// </summary>
+    private static Bitmap LoadAsset(string relativePath, int decodeWidth)
+    {
+        Uri uri = new($"avares://{GlobalHelper.ProjectName}/Assets/{relativePath}");
+
+        try
+        {
+            using Stream stream = AssetLoader.Open(uri);
+            return Bitmap.DecodeToWidth(stream, decodeWidth, BitmapInterpolationMode.HighQuality);
+        }
+        catch
+        {
+            // 个别格式不支持按宽解码时，退回完整解码，保证仍能显示
+            using Stream stream = AssetLoader.Open(uri);
+            return new Bitmap(stream);
         }
     }
 
@@ -84,6 +110,26 @@ public partial class SettingWindow : Window
         _backgroundUiReady = true;
     }
 
+    /// <summary>可选快捷键字母，顺序与 XAML 下拉项一致</summary>
+    private static readonly string[] HotkeyKeys = ["Y", "U", "I", "O", "P", "L"];
+
+    private void InitHotkeySettings()
+    {
+        string key = (GlobalHelper.Config.HotkeyKey ?? "Y").ToUpperInvariant();
+        int index = Array.IndexOf(HotkeyKeys, key);
+        HotkeyComboBox.SelectedIndex = index >= 0 ? index : 0;
+    }
+
+    private void OnHotkeyChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        int index = HotkeyComboBox.SelectedIndex;
+        if (index < 0 || index >= HotkeyKeys.Length)
+            return;
+
+        GlobalHelper.Config.HotkeyKey = HotkeyKeys[index];
+        ConfigManager.SaveConfig(GlobalHelper.Config);
+    }
+
     private void UpdateColorPreviews()
     {
         if (BackgroundTheme.TryParse(BgStartBox.Text, out Color c1))
@@ -98,6 +144,20 @@ public partial class SettingWindow : Window
 
     private void ApplyBackground()
         => BackgroundTheme.Apply(this, NavigationTabs);
+
+    /// <summary>
+    /// 按名字过滤皮肤/帽子格子。614 个条目靠滚动找太费劲，输入关键字即时筛选。
+    /// </summary>
+    private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        string query = (sender as TextBox)?.Text?.Trim() ?? string.Empty;
+
+        foreach ((Border cell, string name) in _allCells)
+        {
+            cell.IsVisible = query.Length == 0
+                || name.Contains(query, StringComparison.OrdinalIgnoreCase);
+        }
+    }
 
     private void OnBackgroundThemeChanged(object? sender, SelectionChangedEventArgs e)
     {
@@ -137,7 +197,8 @@ public partial class SettingWindow : Window
         {
             Image mainImage = new()
             {
-                Source = new Bitmap(AssetLoader.Open(new Uri($"avares://{GlobalHelper.ProjectName}/Assets/{type}/{getIcon(item)}"))),
+                // 格子里只显示 50px，按 64px 解码即可（原图 256×256，全尺寸解码会白白吃掉上百 MB）
+                Source = LoadAsset($"{type}/{getIcon(item)}", 64),
                 Width = 50,
                 Height = 50
             };
@@ -145,7 +206,7 @@ public partial class SettingWindow : Window
             Image badgeImage = new()
             {
                 Name = "Badge",
-                Source = new Bitmap(AssetLoader.Open(new Uri($"avares://{GlobalHelper.ProjectName}/Assets/EmoteEquipped.png"))),
+                Source = LoadAsset("EmoteEquipped.png", 24),
                 IsVisible = false,
                 Width = 20,
                 Height = 20,
@@ -186,6 +247,7 @@ public partial class SettingWindow : Window
             border.Classes.Add("Animation");
             border.PointerPressed += Border_PointerPressed;
             DefaultSkinList.Children.Add(border);
+            _allCells.Add((border, getName(item)));
         }
     }
 
@@ -407,9 +469,14 @@ public partial class SettingWindow : Window
         Launcher.LaunchUriAsync(new Uri(GlobalHelper.Url));
     }
 
-    private void OnUpdateClicked(object? sender, RoutedEventArgs e)
+    private async void OnUpdateClicked(object? sender, RoutedEventArgs e)
     {
+        // 先打开页面，保证点击立刻有反馈；再在后台比较版本
         Launcher.LaunchUriAsync(new Uri(GlobalHelper.Url + "/releases/latest"));
+
+        string? latest = await UpdateChecker.GetLatestTagAsync();
+        if (UpdateChecker.IsNewer(latest, GlobalHelper.Version) && sender is Button button)
+            button.Content = $"↑ {latest}";
     }
 
     private void OnExitClicked(object? sender, RoutedEventArgs e)
