@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [ "main" ]   # main 由 build-and-release.yml 负责
+
+jobs:
+  build:
+    name: Build Check
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ./BongoCatNotice.csproj
+
+      # PR 阶段不跑 AOT 发布,先保证编译通过、节省 CI 时间
+      - name: Build
+        run: dotnet build ./BongoCatNotice.csproj -c Release -p:PublishAot=false --no-restore

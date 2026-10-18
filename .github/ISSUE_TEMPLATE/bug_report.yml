@@ -1,0 +1,87 @@
+name: Bug 报告
+description: 报告一个可以复现的问题
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请尽量把下面填完整，信息越全定位越快。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 问题描述
+      description: 发生了什么？期望是什么？
+      placeholder: |
+        例：切换到带帽子的皮肤后，猫整体向下偏移约 20px。
+        期望：换装时猫脚的位置保持不动。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开设置面板
+        2. 选择皮肤 XXX
+        3. 再选帽子 YYY
+        4. 观察到 …
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 项目版本
+      description: 设置面板显示，或 changelog.md 顶部
+      placeholder: "例：0.1.12.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统
+      options:
+        - Windows 10
+        - Windows 11
+        - Linux (X11)
+        - Linux (Wayland)
+        - macOS (Intel)
+        - macOS (Apple Silicon)
+        - 其它
+    validations:
+      required: true
+
+  - type: dropdown
+    id: run-mode
+    attributes:
+      label: 运行方式
+      options:
+        - Release 下载包
+        - 源码 dotnet run
+        - 自行编译（AOT）
+        - 自行编译（非 AOT）
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 截图 / 控制台输出
+      description: 可直接拖入图片；控制台报错请粘贴文本
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 确认
+      options:
+        - label: 已搜索过现有 Issue，没有重复
+          required: true
+        - label: 已尝试最新版本
+          required: false

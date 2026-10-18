@@ -1,0 +1,68 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BongoCatNotice"
+        xmlns:utilities="clr-namespace:BongoCatNotice.Utilities"
+        x:Class="BongoCatNotice.Views.MainWindow"
+        Title="BongoCatNotice"
+        Width="{Binding Source={x:Static utilities:GlobalHelper.WindowWidth}}"
+        Height="{Binding Source={x:Static utilities:GlobalHelper.WindowHeight}}"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        WindowDecorations="None"
+        WindowStartupLocation="Manual">
+
+    <Grid x:Name="MainGrid"
+          HorizontalAlignment="Left"
+          VerticalAlignment="Top"
+          PointerPressed="OnPointerPressed"
+          PointerMoved="OnPointerMoved"
+          PointerReleased="OnPointerReleased"
+          PointerCaptureLost="OnPointerCaptureLost"
+          RenderOptions.BitmapInterpolationMode="HighQuality">
+
+        <!--Popup x:Name="MessagePopup"
+               Placement="Top"
+               IsOpen="False">
+            <Grid x:Name="MessageGrid" Margin="15">
+                <Border Background="White"
+                        BorderBrush="Gray"
+                        BorderThickness="2"
+                        CornerRadius="6"
+                        Padding="70,5">
+                    <TextBlock Text="喵~喵~"
+                               FontSize="25"
+                               FontWeight="Bold"
+                               Foreground="DimGray"/>
+                </Border>
+
+                <Path Data="M6,0 L10,18 L-3,12"
+                      Fill="White"
+                      Stroke="Gray"
+                      StrokeThickness="2"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Bottom"
+                      Margin="0,0,-3,-5"/>
+            </Grid>
+        </Popup-->
+
+        <Canvas x:Name="SkinCanvas">
+            <Image x:Name="SkinImage"
+                   Width="{Binding Source={x:Static utilities:GlobalHelper.WindowWidth}}"
+                   Height="{Binding Source={x:Static utilities:GlobalHelper.WindowHeight}}"
+                   Source="/Assets/default/CatLeft.png"
+                   Stretch="UniformToFill"/>
+            <Image x:Name="HatImage"
+                   Width="{Binding Source={x:Static utilities:GlobalHelper.WindowWidth}}"
+                   Height="{Binding Source={x:Static utilities:GlobalHelper.WindowHeight}}"
+                   Source=""
+                   Stretch="UniformToFill"/>
+            <Image x:Name="HandImage"
+                   Width="{Binding Source={x:Static utilities:GlobalHelper.WindowWidth}}"
+                   Height="{Binding Source={x:Static utilities:GlobalHelper.WindowHeight}}"
+                   Source="/Assets/default/CatRight.png"
+                   Stretch="UniformToFill"/>
+        </Canvas>
+    </Grid>
+</Window>

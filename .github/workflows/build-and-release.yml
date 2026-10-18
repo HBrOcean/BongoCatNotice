@@ -1,0 +1,139 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*' # 推送以v开头的标签时触发，例如 v1.0.0, v2.1-alpha
+    branches: [ "main" ]
+  # 支持在 Actions 页面点 Run workflow 手动构建(不创建 Release)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and Publish - ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: windows-latest
+            rid: win-arm64
+
+          - os: ubuntu-22.04
+            rid: linux-x64
+          - os: ubuntu-22.04-arm
+            rid: linux-arm64
+
+          - os: macos-latest
+            rid: osx-x64
+          - os: macos-latest
+            rid: osx-arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Build Project
+        run: |
+          dotnet publish ./BongoCatNotice.csproj -c Release -r ${{ matrix.rid }} -p:OutputPath=./publish/${{ matrix.rid }}
+
+      - name: Prepare Artifacts (Unix)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd ./publish
+          rm -rf ${{ matrix.rid }} || true
+          rm -rf ${{ matrix.rid }}native || true
+          if [ -d "${{ matrix.rid }}publish" ]; then
+            mv ${{ matrix.rid }}publish BongoCatNotice.${{ matrix.rid }} || true
+            if [ "${{ matrix.os }}" = "macos-latest" ]; then
+              strip -S BongoCatNotice.${{ matrix.rid }}/BongoCatNotice || true
+            else
+              strip --strip-debug BongoCatNotice.${{ matrix.rid }}/BongoCatNotice || true
+              chmod 755 ../Tools/upx/${{ matrix.rid }}/upx
+              ../Tools/upx/${{ matrix.rid }}/upx --best -q BongoCatNotice.${{ matrix.rid }}/BongoCatNotice BongoCatNotice.${{ matrix.rid }}/*.so || true
+            fi
+          fi
+
+      - name: Prepare Artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd ./publish
+          Remove-Item -Path ${{ matrix.rid }} -Recurse -Force -ErrorAction Ignore
+          Remove-Item -Path ${{ matrix.rid }}native -Recurse -Force -ErrorAction Ignore
+          if (Test-Path -Path "${{ matrix.rid }}publish") {
+            Rename-Item -Path ${{ matrix.rid }}publish -NewName BongoCatNotice.${{ matrix.rid }}
+            if ("${{ matrix.rid }}" -eq "win-x64") {
+              ../Tools/upx/win-x64/upx.exe --best -q (Get-Item "./BongoCatNotice.${{ matrix.rid }}/*.exe", "./BongoCatNotice.${{ matrix.rid }}/*.dll"); exit 0
+            }
+          }
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BongoCatNotice.${{ matrix.rid }}
+          path: publish
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: ./release-artifacts
+          pattern: BongoCatNotice.*
+          merge-multiple: true
+
+      # 上传的是目录,Release 需要附件,这里按平台目录打成 zip
+      - name: Package archives
+        run: |
+          cd ./release-artifacts
+          for d in BongoCatNotice.*/; do
+            name="${d%/}"
+            zip -qr "${name}.zip" "$name"
+          done
+          ls -lh
+
+      - name: Get Changelog
+        id : get_desc
+        run: |
+          result=$(awk '/^# /{if (flag) exit; flag=1} flag && NF' changelog.md)
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            ${{ steps.get_desc.outputs.release_body }}
+              - [更多更新内容](https://github.com/HBrOcean/BongoCatNotice/blob/main/changelog.md)
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+          files: |
+            ./release-artifacts/BongoCatNotice*.zip

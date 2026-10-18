@@ -1,0 +1,69 @@
+{
+    "Name": "English",
+    "Language": "en-US",
+    "Menu": {
+        "Skin": "Change Skin",
+        "Setting": "Settings",
+        "Exit": "Exit"
+    },
+    "SettingWindow": {
+        "DefaultSkin": {
+            "Header": "Skin"
+        },
+        "CustomSkin": {
+            "Header": "Custom Skin",
+            "EmptySkin": "No custom skin yet, please add one to view."
+        },
+        "Setting": {
+            "Header": "Settings",
+            "Setting": "System Settings",
+            "Language": "Language",
+            "Topmost": "Always On Top",
+            "MousePenetration": "Mouse Penetration",
+            "Autorun": "Run at Startup",
+            "TaskbarIcon": "Taskbar Icon",
+            "Visuals": "Visual Effects",
+            "Flip": "Flip Cat",
+            "Zoom": "Zoom Level",
+            "Bobbing": "Bobbing",
+            "Interaction": "Interaction",
+            "DisableDrag": "Disable Dragging",
+            "Adsorption": "Taskbar Docking",
+            "Random": "Random Effects",
+            "RandomSkin": "Random Skin",
+            "Never": "Never",
+            "OneMinute": "1 Minute",
+            "ThreeMinutes": "3 Minutes",
+            "FiveMinutes": "5 Minutes",
+            "FifteenMinutes": "15 Minutes",
+            "ThirtyMinutes": "30 Minutes",
+            "Version": "Version",
+            "Home": "Project Home",
+            "Update": "Check Update",
+            "ExitApp": "Exit Application",
+            "Exit": "Exit",
+            "ToolTip": {
+                "Language": "Which language to use for displaying text in the custom application",
+                "Topmost": "Keep the application always on top of the screen",
+                "MousePenetration": "Allow mouse clicks to penetrate through the application (Windows only)",
+                "Autorun": "Automatically launch at system startup",
+                "TaskbarIcon": "Show icon on the taskbar",
+                "Flip": "Flip the display horizontally",
+                "Zoom": "Custom zoom level for the application",
+                "Bobbing": "Enable or disable the window bobbing animation",
+                "DisableDrag": "Enable or disable dragging the window with the mouse",
+                "Adsorption": "Automatically snap to the edge of the taskbar when near it (Windows only)",
+                "RandomSkin": "Automatically switch skins at regular intervals",
+                "Home": "Open the project homepage",
+                "Update": "Open the latest version release page"
+            },
+            "Background": "Background",
+            "BgYellowOrange": "Yellow → Orange",
+            "BgBlueWhite": "Blue → White",
+            "BgCustom": "Custom",
+            "BgStart": "Start color",
+            "BgEnd": "End color",
+            "BgHint": "Accepts #RRGGBB or #AARRGGBB, applied and saved immediately"
+        }
+    }
+}

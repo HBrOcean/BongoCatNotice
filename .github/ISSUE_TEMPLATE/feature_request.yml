@@ -1,0 +1,60 @@
+name: 功能请求
+description: 提出一个想法或改进建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        说清楚**场景**比说清楚**实现方式**更有用 🙂
+
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      description: 你在什么情况下需要这个功能？现在是怎么解决的？
+      placeholder: |
+        例：我经常在写代码时错过会议提醒，希望小猫能主动举牌提醒我，
+        而不是让我再去开一个日历窗口。
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的效果
+      description: 你希望它怎么表现？（不一定等于最终实现）
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 考虑过的替代方案
+      description: 有没有别的软件/做法能解决？为什么不够好？
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 涉及方向
+      options:
+        - notice / 通知提醒
+        - 皮肤与装扮
+        - 交互与动画
+        - 设置与快捷键
+        - 性能与内存
+        - 构建与发布
+        - 文档
+        - 其它
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 确认
+      options:
+        - label: 已搜索过现有 Issue，没有重复
+          required: true

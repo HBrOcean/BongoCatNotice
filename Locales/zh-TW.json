@@ -1,0 +1,69 @@
+{
+    "Name": "繁體中文",
+    "Language": "zh-TW",
+    "Menu": {
+        "Skin": "換膚",
+        "Setting": "設定",
+        "Exit": "退出"
+    },
+    "SettingWindow": {
+        "DefaultSkin": {
+            "Header": "皮膚"
+        },
+        "CustomSkin": {
+            "Header": "自訂皮膚",
+            "EmptySkin": "暫無自定皮膚，請添加後再查看"
+        },
+        "Setting": {
+            "Header": "設定",
+            "Setting": "系統設定",
+            "Language": "語言",
+            "Topmost": "視窗置頂",
+            "MousePenetration": "滑鼠點擊穿透",
+            "Autorun": "開機自動啟動",
+            "TaskbarIcon": "工作列圖示",
+            "Visuals": "視覺效果",
+            "Flip": "水平翻轉",
+            "Zoom": "縮放比例",
+            "Bobbing": "開啟上下抖動",
+            "Interaction": "交互設定",
+            "DisableDrag": "禁用拖動",
+            "Adsorption": "工作列吸附",
+            "Random": "隨機裝扮",
+            "RandomSkin": "隨機外觀",
+            "Never": "永不",
+            "OneMinute": "1 分鐘",
+            "ThreeMinutes": "3 分鐘",
+            "FiveMinutes": "5 分鐘",
+            "FifteenMinutes": "15 分鐘",
+            "ThirtyMinutes": "30 分鐘",
+            "Version": "版本",
+            "Home": "項目主頁",
+            "Update": "檢查更新",
+            "ExitApp": "退出程式",
+            "Exit": "退出",
+            "ToolTip": {
+                "Language": "自訂程式使用哪種語言顯示文字",
+                "Topmost": "讓程式始終在螢幕最頂層",
+                "MousePenetration": "讓滑鼠點擊可以穿透程式，僅 Windows 系統可用",
+                "Autorun": "開機自動啟動",
+                "TaskbarIcon": "在工作列上顯示圖示",
+                "Flip": "將畫面水平翻轉",
+                "Zoom": "自訂程式的縮放比例",
+                "Bobbing": "啟用或禁用視窗的抖動動畫",
+                "DisableDrag": "啟用或禁用滑鼠拖曳視窗",
+                "Adsorption": "靠近系統工作列時自動吸附在工作列的邊緣，僅 Windows 系統可用",
+                "RandomSkin": "定時自動切換皮膚",
+                "Home": "開啟專案首頁",
+                "Update": "開啟最新版本發佈頁面"
+            },
+            "Background": "介面背景",
+            "BgYellowOrange": "黃橙漸層",
+            "BgBlueWhite": "藍白漸層",
+            "BgCustom": "自訂",
+            "BgStart": "起始色",
+            "BgEnd": "結束色",
+            "BgHint": "支援 #RRGGBB 或 #AARRGGBB，修改後立即生效並儲存"
+        }
+    }
+}

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 使用问题 / 讨论
+    url: https://github.com/WLongSAMA/BongoCatLike/discussions
+    about: 上游 BongoCatLike 的讨论区，通用桌宠使用问题也可以在那里交流
+  - name: 上游项目 BongoCatLike
+    url: https://github.com/WLongSAMA/BongoCatLike
+    about: 本项目基于该项目修改而来，与上游共性的问题可先查看上游仓库
