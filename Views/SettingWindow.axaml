@@ -182,7 +182,7 @@
                              DockPanel.Dock="Top"
                              Margin="5,8,12,0"
                              FontSize="12"
-                             Watermark="{Binding SearchPlaceholderText}"
+                             PlaceholderText="{Binding SearchPlaceholderText}"
                              TextChanged="OnSearchTextChanged"/>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="-5,0,0,0">
                         <WrapPanel x:Name="DefaultSkinList" Margin="5,10,0,10" Orientation="Horizontal"></WrapPanel>
@@ -460,21 +460,21 @@
                                                 <TextBox Classes="time"
                                                          Text="{Binding TimeText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                                          MaxLength="5"
-                                                         Watermark="09:00"
+                                                         PlaceholderText="09:00"
                                                          ToolTip.Tip="{Binding TimeTip}"
                                                          ToolTip.Placement="Top"/>
                                                 <TextBox Grid.Column="1"
                                                          Classes="title"
                                                          Margin="6,0,0,0"
                                                          MaxLength="24"
-                                                         Watermark="{Binding TitlePlaceholder}"
+                                                         PlaceholderText="{Binding TitlePlaceholder}"
                                                          Text="{Binding Title, Mode=TwoWay}"/>
                                             </Grid>
 
                                             <TextBox Classes="body"
                                                      Margin="0,3,0,0"
                                                      MaxLength="60"
-                                                     Watermark="{Binding MessagePlaceholder}"
+                                                     PlaceholderText="{Binding MessagePlaceholder}"
                                                      Text="{Binding Message, Mode=TwoWay}"/>
 
                                             <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,7,0,0">

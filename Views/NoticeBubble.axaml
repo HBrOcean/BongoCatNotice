@@ -2,7 +2,7 @@
 <!--
   BongoCatNotice 提醒气泡 v2（完整版）
   · 宽高由内容决定，尾巴固定几何不变形
-  · 颜色全部走资源，缺资源时有兜底值
+  · 颜色全部走 App.axaml 的 Light/Dark 主题资源
   · 尾巴可左右切换，带独立阴影
   · 长文本有行数上限，不会撑爆屏幕
 -->
@@ -13,20 +13,12 @@
              HorizontalAlignment="Center"
              VerticalAlignment="Top">
 
-  <UserControl.Resources>
-    <!-- 兜底：即使 App.axaml 没定义也不会显示成透明 -->
-    <SolidColorBrush x:Key="BubbleFillFallback" Color="#FFFDF7" />
-    <SolidColorBrush x:Key="BubbleStrokeFallback" Color="#B86C3A" />
-    <SolidColorBrush x:Key="BubbleTextFallback" Color="#463214" />
-    <SolidColorBrush x:Key="BubbleSubTextFallback" Color="#8A7660" />
-    <SolidColorBrush x:Key="BubbleAccentFallback" Color="#B86C3A" />
-  </UserControl.Resources>
 
   <UserControl.Styles>
     <Style Selector="TextBlock.notice-title">
       <Setter Property="FontSize" Value="19" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="{DynamicResource BubbleText, Fallback={StaticResource BubbleTextFallback}}" />
+      <Setter Property="Foreground" Value="{DynamicResource BubbleText}" />
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="TextTrimming" Value="CharacterEllipsis" />
       <Setter Property="MaxLines" Value="2" />
@@ -35,7 +27,7 @@
 
     <Style Selector="TextBlock.notice-body">
       <Setter Property="FontSize" Value="13" />
-      <Setter Property="Foreground" Value="{DynamicResource BubbleSubText, Fallback={StaticResource BubbleSubTextFallback}}" />
+      <Setter Property="Foreground" Value="{DynamicResource BubbleSubText}" />
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="TextTrimming" Value="CharacterEllipsis" />
       <Setter Property="MaxLines" Value="4" />
@@ -50,14 +42,14 @@
       <Setter Property="HorizontalAlignment" Value="Left" />
       <Setter Property="Margin" Value="0,6,0,0" />
       <Setter Property="Foreground" Value="#FFFDF7" />
-      <Setter Property="Background" Value="{DynamicResource BubbleAccent, Fallback={StaticResource BubbleAccentFallback}}" />
+      <Setter Property="Background" Value="{DynamicResource BubbleAccent}" />
     </Style>
     <Style Selector="Button.notice-action:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BubbleAccentHover, Fallback={StaticResource BubbleAccentFallback}}" />
+      <Setter Property="Background" Value="{DynamicResource BubbleAccentHover}" />
       <Setter Property="Opacity" Value="0.88" />
     </Style>
     <Style Selector="Button.notice-action:pressed /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource BubbleAccentPressed, Fallback={StaticResource BubbleAccentFallback}}" />
+      <Setter Property="Background" Value="{DynamicResource BubbleAccentPressed}" />
       <Setter Property="Opacity" Value="0.72" />
     </Style>
   </UserControl.Styles>
@@ -82,13 +74,13 @@
           HorizontalAlignment="Right"
           VerticalAlignment="Bottom"
           Margin="0,0,32,-20"
-          Fill="{DynamicResource BubbleFill, Fallback={StaticResource BubbleFillFallback}}"
-          Stroke="{DynamicResource BubbleStroke, Fallback={StaticResource BubbleStrokeFallback}}"
+          Fill="{DynamicResource BubbleFill}"
+          Stroke="{DynamicResource BubbleStroke}"
           StrokeThickness="3"
           StrokeJoin="Round"
           Data="M14.5,1.5 C10.5,10.5 3.5,21.5 2.5,33.5 C2.5,36.5 7.5,36.5 9.5,33.5 C13.5,23.5 21.5,11.5 38.5,1.5 Z">
       <Path.Effect>
-        <DropShadowEffect ShadowDepth="6" Direction="90" BlurRadius="16"
+        <DropShadowEffect OffsetX="0" OffsetY="6" BlurRadius="16"
                           Color="#3C2A14" Opacity="0.18" />
       </Path.Effect>
     </Path>
@@ -101,13 +93,13 @@
           VerticalAlignment="Bottom"
           Margin="32,0,0,-20"
           IsVisible="False"
-          Fill="{DynamicResource BubbleFill, Fallback={StaticResource BubbleFillFallback}}"
-          Stroke="{DynamicResource BubbleStroke, Fallback={StaticResource BubbleStrokeFallback}}"
+          Fill="{DynamicResource BubbleFill}"
+          Stroke="{DynamicResource BubbleStroke}"
           StrokeThickness="3"
           StrokeJoin="Round"
           Data="M25.5,1.5 C29.5,10.5 36.5,21.5 37.5,33.5 C37.5,36.5 32.5,36.5 30.5,33.5 C26.5,23.5 18.5,11.5 1.5,1.5 Z">
       <Path.Effect>
-        <DropShadowEffect ShadowDepth="6" Direction="90" BlurRadius="16"
+        <DropShadowEffect OffsetX="0" OffsetY="6" BlurRadius="16"
                           Color="#3C2A14" Opacity="0.18" />
       </Path.Effect>
     </Path>
@@ -116,8 +108,8 @@
             MinHeight="72"
             MaxWidth="360"
             MaxHeight="340"
-            Background="{DynamicResource BubbleFill, Fallback={StaticResource BubbleFillFallback}}"
-            BorderBrush="{DynamicResource BubbleStroke, Fallback={StaticResource BubbleStrokeFallback}}"
+            Background="{DynamicResource BubbleFill}"
+            BorderBrush="{DynamicResource BubbleStroke}"
             BorderThickness="3"
             CornerRadius="22"
             Padding="22,14"
