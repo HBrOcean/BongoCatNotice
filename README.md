@@ -69,6 +69,20 @@
 
 Windows 首次运行若提示"未知发布者"，为未签名程序的正常现象，选择「更多信息 → 仍要运行」即可。
 
+**Linux 用户注意**：Avalonia 依赖 X11 与字体库，精简系统或服务器版需要先补齐，否则双击没反应：
+
+```bash
+# Debian / Ubuntu
+sudo apt install libx11-6 libxrandr2 libxi6 libxcursor1 libxext6 \
+                 libice6 libsm6 libfontconfig1 libfreetype6 libgl1
+
+# Fedora / RHEL
+sudo dnf install libX11 libXrandr libXi libXcursor libXext libICE libSM \
+                 fontconfig freetype mesa-libGL
+```
+
+系统要求 **glibc ≥ 2.35**（Debian 12 / Ubuntu 22.04 及以上）。Alpine 等 musl 发行版不适用，需要自行用 `linux-musl-x64` 重新编译。
+
 ### 从源码运行
 
 需要 **.NET 10 SDK**：

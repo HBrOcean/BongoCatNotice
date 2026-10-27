@@ -5,6 +5,34 @@
              RequestedThemeVariant="Default">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="BubbleFill" Color="#FFFDF7" />
+                    <SolidColorBrush x:Key="BubbleStroke" Color="#B86C3A" />
+                    <SolidColorBrush x:Key="BubbleText" Color="#463214" />
+                    <SolidColorBrush x:Key="BubbleSubText" Color="#8A7660" />
+                    <SolidColorBrush x:Key="BubbleAccent" Color="#B86C3A" />
+                    <SolidColorBrush x:Key="BubbleAccentHover" Color="#C97C46" />
+                    <SolidColorBrush x:Key="BubbleAccentPressed" Color="#9C5828" />
+                </ResourceDictionary>
+
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="BubbleFill" Color="#3B3026" />
+                    <SolidColorBrush x:Key="BubbleStroke" Color="#C98A54" />
+                    <SolidColorBrush x:Key="BubbleText" Color="#FFF3E0" />
+                    <SolidColorBrush x:Key="BubbleSubText" Color="#CCBAA2" />
+                    <SolidColorBrush x:Key="BubbleAccent" Color="#C98A54" />
+                    <SolidColorBrush x:Key="BubbleAccentHover" Color="#D89B65" />
+                    <SolidColorBrush x:Key="BubbleAccentPressed" Color="#A8703F" />
+                </ResourceDictionary>
+
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>

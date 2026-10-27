@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using BongoCatNotice.Models;
 using BongoCatNotice.Utilities;
 using BongoCatNotice.ViewModels;
 
@@ -32,6 +33,7 @@ public partial class SettingWindow : Window
         DataContext = new SettingViewModel();
         InitBackgroundSettings();
         InitHotkeySettings();
+        ApplyReminderEnabledState(GlobalHelper.Config.RemindersEnabled);
         Closed += (s, e) =>
         {
             CurrentInstance = null;
@@ -143,7 +145,31 @@ public partial class SettingWindow : Window
         => CustomColorPanel.IsVisible = BackgroundThemeComboBox.SelectedIndex == 2;
 
     private void ApplyBackground()
-        => BackgroundTheme.Apply(this, NavigationTabs);
+    {
+        BackgroundTheme.Apply(this, NavigationTabs, GlassLayer);
+
+        // 玻璃模式下渐变颜色不起作用，把相关控件灰掉，免得用户改了没反应
+        bool glass = GlobalHelper.Config.GlassEffect;
+        BackgroundThemeComboBox.IsEnabled = !glass;
+        CustomColorPanel.IsEnabled = !glass;
+
+        if (glass)
+            NavigationTabs.Classes.Add("glass");
+        else
+            NavigationTabs.Classes.Remove("glass");
+    }
+
+    private void OnGlassClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not CheckBox checkBox)
+        {
+            return;
+        }
+
+        GlobalHelper.Config.GlassEffect = checkBox.IsChecked.GetValueOrDefault();
+        ConfigManager.SaveConfig(GlobalHelper.Config);
+        ApplyBackground();
+    }
 
     /// <summary>
     /// 按名字过滤皮肤/帽子格子。614 个条目靠滚动找太费劲，输入关键字即时筛选。
@@ -328,6 +354,7 @@ public partial class SettingWindow : Window
             "Page1" => 0,
             "Page2" => 1,
             "Setting" => 2,
+            "Reminder" => 3,
             _ => 0,
         };
     }
@@ -366,6 +393,63 @@ public partial class SettingWindow : Window
         _isClosed = true;
     }
 
+    private void OnReminderMasterChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not ToggleSwitch toggle)
+        {
+            return;
+        }
+
+        bool enabled = toggle.IsChecked.GetValueOrDefault();
+        GlobalHelper.Config.RemindersEnabled = enabled;
+        ReminderStore.SaveNow();
+        ApplyReminderEnabledState(enabled);
+    }
+
+    /// <summary>总开关关掉时把列表和按钮都灰掉并给出提示，设置本身保留</summary>
+    private void ApplyReminderEnabledState(bool enabled)
+    {
+        ReminderScroll.IsEnabled = enabled;
+        ReminderAddButton.IsEnabled = enabled;
+        ReminderTestButton.IsEnabled = enabled;
+        ReminderOffHint.IsVisible = !enabled;
+    }
+
+    private void OnAddReminder(object? sender, RoutedEventArgs e)
+    {
+        ReminderStore.Add();
+    }
+
+    private void OnRemoveReminder(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: ReminderItem item })
+        {
+            ReminderStore.Remove(item);
+        }
+    }
+
+    private void OnTestReminder(object? sender, RoutedEventArgs e)
+    {
+        // 没有条目就先建一条，方便用户马上看到效果
+        if (ReminderStore.Items.Count == 0)
+        {
+            ReminderStore.Add();
+        }
+
+        if (ReminderStore.Items.Count > 0)
+        {
+            ReminderStore.Preview(ReminderStore.Items[0]);
+        }
+    }
+
+    /// <summary>重建提醒列表，让条目内的多语言文案跟着刷新</summary>
+    private void RefreshReminderList()
+    {
+        var source = ReminderList.ItemsSource;
+        ReminderList.ItemsSource = null;
+        ReminderList.ItemsSource = source;
+    }
+
     private void OnLangListSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (sender is ComboBox comboBox)
@@ -384,6 +468,9 @@ public partial class SettingWindow : Window
                         int value = RandomSkinComboBox.SelectedIndex;
                         RandomSkinComboBox.SelectedIndex = -1;
                         RandomSkinComboBox.SelectedIndex = value;
+
+                        // 提醒条目里的"每重复方式"文案需要重建模板才会刷新
+                        RefreshReminderList();
                     }
                 }
             }
@@ -472,7 +559,7 @@ public partial class SettingWindow : Window
     private async void OnUpdateClicked(object? sender, RoutedEventArgs e)
     {
         // 先打开页面，保证点击立刻有反馈；再在后台比较版本
-        Launcher.LaunchUriAsync(new Uri(GlobalHelper.Url + "/releases/latest"));
+        _ = Launcher.LaunchUriAsync(new Uri(GlobalHelper.Url + "/releases/latest"));
 
         string? latest = await UpdateChecker.GetLatestTagAsync();
         if (UpdateChecker.IsNewer(latest, GlobalHelper.Version) && sender is Button button)

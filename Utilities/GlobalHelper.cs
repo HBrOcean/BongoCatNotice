@@ -7,7 +7,7 @@ namespace BongoCatNotice.Utilities
     {
         public static string ProjectName { get; } = "BongoCatNotice";
         public static string Name { get; } = "BongoCatNotice";
-        public static string Version { get; } = "0.1.0.5";
+        public static string Version { get; } = "0.1.0.6";
         public static string Url { get; } = "https://github.com/HBrOcean/BongoCatNotice";
         public static int WindowWidth { get; } = 256;
         public static int WindowHeight { get; } = 256;

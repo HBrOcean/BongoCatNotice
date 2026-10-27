@@ -56,7 +56,8 @@
                 "Adsorption": "靠近系统任务栏时自动吸附在任务栏的边缘，仅 Windows 系统可用",
                 "RandomSkin": "定时自动切换皮肤",
                 "Home": "打开项目主页",
-                "Update": "打开最新版本发布页面"
+                "Update": "打开最新版本发布页面",
+                "Glass": "面板变成半透明磨砂，能透出背后的壁纸。系统不支持模糊时会退化为纯半透明"
             },
             "Background": "界面背景",
             "BgYellowOrange": "黄橙渐变",
@@ -65,7 +66,31 @@
             "BgStart": "起始色",
             "BgEnd": "结束色",
             "BgHint": "支持 #RRGGBB 或 #AARRGGBB，修改后立即生效并保存",
-            "Hotkey": "快捷键"
+            "Hotkey": "快捷键",
+            "Glass": "液态玻璃效果"
+        },
+        "Reminder": {
+            "Header": "提醒",
+            "Hint": "到点后猫猫会弹出提醒卡片",
+            "Add": "＋ 添加",
+            "Empty": "还没有提醒，点右上角添加一条",
+            "DefaultTitle": "提醒",
+            "Enabled": "启用",
+            "RepeatDaily": "每天",
+            "RepeatWeekday": "工作日",
+            "RepeatOnce": "仅一次",
+            "Test": "预览",
+            "ToolTip": {
+                "Time": "24 小时制，格式 09:30",
+                "Title": "提醒的标题",
+                "Message": "提醒的正文内容",
+                "AutoClose": "弹出后多久自动关闭，— 表示必须手动关闭",
+                "Delete": "删除这条提醒",
+                "Test": "立即弹一次看看效果",
+                "Master": "关掉后所有提醒都不再触发，各自的设置会保留"
+            },
+            "Master": "定时提醒",
+            "OffHint": "提醒已暂停，到点不会弹出。单条设置仍保留。"
         }
     }
 }

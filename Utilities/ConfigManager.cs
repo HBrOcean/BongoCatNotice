@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using BongoCatNotice.Models;
 
 namespace BongoCatNotice.Utilities
 {
@@ -127,8 +129,17 @@ namespace BongoCatNotice.Utilities
         /// <summary>自定义渐变结束色(#RRGGBB)</summary>
         public string BackgroundEnd { get; set; } = "#FFD19A";
 
+        /// <summary>液态玻璃效果：开启后设置面板改为半透明磨砂，透出背后壁纸</summary>
+        public bool GlassEffect { get; set; } = false;
+
         /// <summary>Ctrl + ? 打开设置面板的字母键(Y/U/I/O/P/L)</summary>
         public string HotkeyKey { get; set; } = "Y";
+
+        /// <summary>定时提醒列表</summary>
+        public List<ReminderItem> Reminders { get; set; } = new();
+
+        /// <summary>提醒总开关。关掉后所有提醒都不触发，但各自的设置保留</summary>
+        public bool RemindersEnabled { get; set; } = true;
     }
 
     [JsonSerializable(typeof(AppConfig))]

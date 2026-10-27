@@ -45,6 +45,9 @@ namespace BongoCatNotice.ViewModels
         public static string BgStartText => Localization.Instance["SettingWindow.Setting.BgStart"];
         public static string BgEndText => Localization.Instance["SettingWindow.Setting.BgEnd"];
         public static string BgHintText => Localization.Instance["SettingWindow.Setting.BgHint"];
+        public static string GlassText => Localization.Instance["SettingWindow.Setting.Glass"];
+        public static string GlassToolTipText => Localization.Instance["SettingWindow.Setting.ToolTip.Glass"];
+        public static bool GlassValue => GlobalHelper.Config.GlassEffect;
         public static int BgThemeIndexValue => BackgroundTheme.ToIndex(GlobalHelper.Config.BackgroundTheme);
         public static string HomeText => Localization.Instance["SettingWindow.Setting.Home"];
         public static string UpdateText => Localization.Instance["SettingWindow.Setting.Update"];
@@ -64,6 +67,33 @@ namespace BongoCatNotice.ViewModels
         public static string HomeToolTipText => Localization.Instance["SettingWindow.Setting.ToolTip.Home"];
         public static string UpdateToolTipText => Localization.Instance["SettingWindow.Setting.ToolTip.Update"];
 
+        // ---- 定时提醒 ----
+        public static string ReminderHeaderText => Localization.Instance["SettingWindow.Reminder.Header"];
+        public static string ReminderHintText => Localization.Instance["SettingWindow.Reminder.Hint"];
+        public static string ReminderAddText => Localization.Instance["SettingWindow.Reminder.Add"];
+        public static string ReminderEmptyText => Localization.Instance["SettingWindow.Reminder.Empty"];
+        public static string ReminderRepeatDailyText => Localization.Instance["SettingWindow.Reminder.RepeatDaily"];
+        public static string ReminderRepeatWeekdayText => Localization.Instance["SettingWindow.Reminder.RepeatWeekday"];
+        public static string ReminderRepeatOnceText => Localization.Instance["SettingWindow.Reminder.RepeatOnce"];
+        public static string ReminderTimeToolTipText => Localization.Instance["SettingWindow.Reminder.ToolTip.Time"];
+        public static string ReminderTitleToolTipText => Localization.Instance["SettingWindow.Reminder.ToolTip.Title"];
+        public static string ReminderMessageToolTipText => Localization.Instance["SettingWindow.Reminder.ToolTip.Message"];
+        public static string ReminderAutoCloseToolTipText => Localization.Instance["SettingWindow.Reminder.ToolTip.AutoClose"];
+        public static string ReminderDeleteToolTipText => Localization.Instance["SettingWindow.Reminder.ToolTip.Delete"];
+        public static string ReminderTestText => Localization.Instance["SettingWindow.Reminder.Test"];
+        public static string ReminderTestToolTipText => Localization.Instance["SettingWindow.Reminder.ToolTip.Test"];
+        public static string ReminderEnabledText => Localization.Instance["SettingWindow.Reminder.Enabled"];
+        public static string ReminderMasterText => Localization.Instance["SettingWindow.Reminder.Master"];
+        public static string ReminderMasterToolTipText => Localization.Instance["SettingWindow.Reminder.ToolTip.Master"];
+        public static string ReminderOffHintText => Localization.Instance["SettingWindow.Reminder.OffHint"];
+        public static bool RemindersOnValue => GlobalHelper.Config.RemindersEnabled;
+
+        /// <summary>提醒列表，直接绑定 ReminderStore 的集合</summary>
+        public System.Collections.ObjectModel.ObservableCollection<BongoCatNotice.Models.ReminderItem> Reminders
+            => ReminderStore.Items;
+
+        public bool HasReminders => ReminderStore.Items.Count > 0;
+
         public static bool TopmostValue => GlobalHelper.Config.Topmost;
         public static bool MousePenetrationValue => GlobalHelper.Config.MousePenetration;
         public static bool AutorunValue => GlobalHelper.Config.Autorun;
@@ -78,6 +108,8 @@ namespace BongoCatNotice.ViewModels
 
         public SettingViewModel()
         {
+            ReminderStore.Items.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasReminders));
+
             Localization.LanguageChanged += () =>
             {
                 OnPropertyChanged(nameof(DefaultSkinText));
@@ -123,6 +155,26 @@ namespace BongoCatNotice.ViewModels
                 OnPropertyChanged(nameof(RandomSkinToolTipText));
                 OnPropertyChanged(nameof(HomeToolTipText));
                 OnPropertyChanged(nameof(UpdateToolTipText));
+                OnPropertyChanged(nameof(GlassText));
+                OnPropertyChanged(nameof(GlassToolTipText));
+                OnPropertyChanged(nameof(ReminderHeaderText));
+                OnPropertyChanged(nameof(ReminderHintText));
+                OnPropertyChanged(nameof(ReminderAddText));
+                OnPropertyChanged(nameof(ReminderEmptyText));
+                OnPropertyChanged(nameof(ReminderRepeatDailyText));
+                OnPropertyChanged(nameof(ReminderRepeatWeekdayText));
+                OnPropertyChanged(nameof(ReminderRepeatOnceText));
+                OnPropertyChanged(nameof(ReminderTimeToolTipText));
+                OnPropertyChanged(nameof(ReminderTitleToolTipText));
+                OnPropertyChanged(nameof(ReminderMessageToolTipText));
+                OnPropertyChanged(nameof(ReminderAutoCloseToolTipText));
+                OnPropertyChanged(nameof(ReminderDeleteToolTipText));
+                OnPropertyChanged(nameof(ReminderTestText));
+                OnPropertyChanged(nameof(ReminderTestToolTipText));
+                OnPropertyChanged(nameof(ReminderEnabledText));
+                OnPropertyChanged(nameof(ReminderMasterText));
+                OnPropertyChanged(nameof(ReminderMasterToolTipText));
+                OnPropertyChanged(nameof(ReminderOffHintText));
             };
         }
 

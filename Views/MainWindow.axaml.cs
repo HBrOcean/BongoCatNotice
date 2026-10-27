@@ -38,8 +38,20 @@ namespace BongoCatNotice.Views
         private double _lastWindowHeight = 0;
         private bool _positionCompensationReady = false;
         // 边缘吸附：拖拽停稳后再对齐，避免拖动过程中被反复拉回
-        private readonly DispatcherTimer _snapTimer = new() { Interval = TimeSpan.FromMilliseconds(220) };
+        private readonly DispatcherTimer _snapTimer = new() { Interval = TimeSpan.FromMilliseconds(140) };
         private bool _applyingSnap = false;
+        // 当前贴住的是哪几条边，窗口尺寸变化后按这个状态重新贴齐
+        [Flags]
+        private enum SnapEdge
+        {
+            None = 0,
+            Left = 1,
+            Right = 2,
+            Top = 4,
+            Bottom = 8
+        }
+        private SnapEdge _snapState = SnapEdge.None;
+        private bool _snapAnimating = false;
         private double _lastAppliedScaling = 1;
         //private double LastHeight = 0;
         //private CancellationTokenSource? _cancellationTokenSource;
@@ -49,6 +61,9 @@ namespace BongoCatNotice.Views
 
         DispatcherTimer RandomSkinTimer = new();
         private bool isRandomSkinTimerRunning = false;
+
+        // 定时提醒：气泡窗口管家 + 调度器
+        private NoticePresenter? _noticePresenter;
 
         public MainWindow()
         {
@@ -73,6 +88,11 @@ namespace BongoCatNotice.Views
                 ApplyAdsorption();
             };
             _lastAppliedScaling = RenderScaling <= 0 ? 1 : RenderScaling;
+
+            // 定时提醒：读配置 → 起调度器
+            ReminderStore.Load();
+            _noticePresenter = new NoticePresenter(this);
+            ReminderStore.Start(_noticePresenter);
         }
 
         private void MainWindow_PositionChanged(object? sender, PixelPointEventArgs e)
@@ -84,6 +104,7 @@ namespace BongoCatNotice.Views
                 _lastAppliedScaling = scaling;
                 _lastWindowWidth = 0;
                 _lastWindowHeight = 0;
+                _snapState = SnapEdge.None;   // 换到另一块屏了，旧贴边状态作废
                 SetWindowSize();
             }
 
@@ -97,11 +118,14 @@ namespace BongoCatNotice.Views
 
         /// <summary>
         /// 边缘吸附：窗口靠近屏幕工作区边缘时自动贴齐。
-        /// 距离阈值按物理像素计算，适配不同 DPI。
+        /// · 阈值随 DPI 缩放，高缩放下手感一致
+        /// · 多显示器之间的接缝不吸附，否则窗口会粘在两屏中间拖不过去
+        /// · 吸附过程 110ms 缓动，不是瞬间跳过去
         /// </summary>
         private void ApplyAdsorption()
         {
-            if (!GlobalHelper.Config.Adsorption || !_positionCompensationReady || _applyingSnap)
+            if (!GlobalHelper.Config.Adsorption || !_positionCompensationReady ||
+                _applyingSnap || _snapAnimating || _dragStartPoint is not null)
                 return;
 
             Screen? screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
@@ -116,35 +140,148 @@ namespace BongoCatNotice.Views
             if (winWidth <= 0 || winHeight <= 0)
                 return;
 
-            const int snapDistance = 18;
+            int snapDistance = (int)Math.Round(18 * rs);
             int x = Position.X;
             int y = Position.Y;
             int right = wa.X + wa.Width;
             int bottom = wa.Y + wa.Height;
+            SnapEdge state = SnapEdge.None;
 
-            if (Math.Abs(x - wa.X) <= snapDistance)
+            if (!HasNeighborScreen(screen, SnapEdge.Left) && Math.Abs(x - wa.X) <= snapDistance)
+            {
                 x = wa.X;
-            else if (Math.Abs(right - (x + winWidth)) <= snapDistance)
+                state |= SnapEdge.Left;
+            }
+            else if (!HasNeighborScreen(screen, SnapEdge.Right) && Math.Abs(right - (x + winWidth)) <= snapDistance)
+            {
                 x = right - winWidth;
+                state |= SnapEdge.Right;
+            }
 
-            if (Math.Abs(y - wa.Y) <= snapDistance)
+            if (!HasNeighborScreen(screen, SnapEdge.Top) && Math.Abs(y - wa.Y) <= snapDistance)
+            {
                 y = wa.Y;
-            else if (Math.Abs(bottom - (y + winHeight)) <= snapDistance)
+                state |= SnapEdge.Top;
+            }
+            else if (!HasNeighborScreen(screen, SnapEdge.Bottom) && Math.Abs(bottom - (y + winHeight)) <= snapDistance)
+            {
                 y = bottom - winHeight;
+                state |= SnapEdge.Bottom;
+            }
+
+            _snapState = state;
 
             if (x == Position.X && y == Position.Y)
                 return;
 
-            _applyingSnap = true;
+            SnapTo(x, y);
+        }
+
+        /// <summary>按当前贴边状态重新对齐（换皮肤、改缩放、换显示器后调用）</summary>
+        private void ReapplySnap()
+        {
+            if (!GlobalHelper.Config.Adsorption || _snapState == SnapEdge.None || _applyingSnap)
+                return;
+
+            Screen? screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+            if (screen is null)
+                return;
+
+            PixelRect wa = screen.WorkingArea;
+            double rs = RenderScaling <= 0 ? 1 : RenderScaling;
+            int winWidth = (int)Math.Round(Bounds.Width * rs);
+            int winHeight = (int)Math.Round(Bounds.Height * rs);
+            if (winWidth <= 0 || winHeight <= 0)
+                return;
+
+            int x = Position.X;
+            int y = Position.Y;
+
+            if (_snapState.HasFlag(SnapEdge.Left))
+                x = wa.X;
+            else if (_snapState.HasFlag(SnapEdge.Right))
+                x = wa.X + wa.Width - winWidth;
+
+            if (_snapState.HasFlag(SnapEdge.Top))
+                y = wa.Y;
+            else if (_snapState.HasFlag(SnapEdge.Bottom))
+                y = wa.Y + wa.Height - winHeight;
+
+            if (x != Position.X || y != Position.Y)
+                SnapTo(x, y);
+        }
+
+        /// <summary>缓动到目标位置，110ms easeOutCubic；用户中途开始拖动则立即中止</summary>
+        private async void SnapTo(int x, int y)
+        {
+            if (_snapAnimating)
+                return;
+
+            PixelPoint from = Position;
+            var to = new PixelPoint(x, y);
+            if (from == to)
+                return;
+
+            _snapAnimating = true;
+            _applyingSnap = true;   // 整个动画期间都屏蔽位置变化回调，避免自我触发
             try
             {
-                Position = new PixelPoint(x, y);
+                const int durationMs = 110;
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                while (watch.ElapsedMilliseconds < durationMs)
+                {
+                    if (_dragStartPoint is not null)
+                        return;
+
+                    double t = watch.ElapsedMilliseconds / (double)durationMs;
+                    double e = 1 - Math.Pow(1 - t, 3);
+                    Position = new PixelPoint(
+                        (int)Math.Round(from.X + (to.X - from.X) * e),
+                        (int)Math.Round(from.Y + (to.Y - from.Y) * e));
+
+                    await Task.Delay(8);
+                }
+
+                Position = to;
+            }
+            catch (Exception ex)
+            {
+                // async void 里抛出去就是未捕获异常，桌宠会直接消失
+                Console.WriteLine($"吸附动画失败: {ex.Message}");
             }
             finally
             {
                 _applyingSnap = false;
+                _snapAnimating = false;
             }
         }
+
+        /// <summary>该方向是否还有另一块屏幕贴着；有则这一侧不吸附，否则窗口会卡在两屏接缝</summary>
+        private bool HasNeighborScreen(Screen current, SnapEdge side)
+        {
+            PixelRect b = current.Bounds;
+            foreach (Screen s in Screens.All)
+            {
+                if (ReferenceEquals(s, current))
+                    continue;
+
+                PixelRect o = s.Bounds;
+                bool vOverlap = o.Y < b.Y + b.Height && o.Y + o.Height > b.Y;
+                bool hOverlap = o.X < b.X + b.Width && o.X + o.Width > b.X;
+
+                switch (side)
+                {
+                    case SnapEdge.Left when vOverlap && Math.Abs(o.X + o.Width - b.X) <= 2:
+                    case SnapEdge.Right when vOverlap && Math.Abs(o.X - (b.X + b.Width)) <= 2:
+                    case SnapEdge.Top when hOverlap && Math.Abs(o.Y + o.Height - b.Y) <= 2:
+                    case SnapEdge.Bottom when hOverlap && Math.Abs(o.Y - (b.Y + b.Height)) <= 2:
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
 
         private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
         {
@@ -153,6 +290,10 @@ namespace BongoCatNotice.Views
             GlobalHelper.Config.SkinId = GlobalHelper.CatSkin.SkinId;
             GlobalHelper.Config.HatId = GlobalHelper.CatSkin.HatId;
             ConfigManager.SaveConfig(GlobalHelper.Config);
+
+            ReminderStore.Stop();
+            ReminderStore.SaveNow();
+            _noticePresenter?.Dispose();
         }
 
         private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -271,6 +412,9 @@ namespace BongoCatNotice.Views
 
             // 初始布局与窗口位置确定后再启用位置补偿
             _positionCompensationReady = true;
+
+            // 上次退出时是贴着边的，启动后直接贴回去（等布局完成再算）
+            Dispatcher.UIThread.Post(ApplyAdsorption, DispatcherPriority.Loaded);
         }
 
         private void SetWindowSize(int type = 0)
@@ -307,6 +451,10 @@ namespace BongoCatNotice.Views
 
             _lastWindowWidth = newWidth;
             _lastWindowHeight = newHeight;
+
+            // 尺寸变了，如果之前贴着边就按原状态重新贴齐，否则会脱开一截
+            if (GlobalHelper.Config.Adsorption && _snapState != SnapEdge.None)
+                Dispatcher.UIThread.Post(ReapplySnap, DispatcherPriority.Background);
         }
 
         private void SetRandomSkin()
@@ -728,9 +876,16 @@ namespace BongoCatNotice.Views
         {
             GlobalHelper.Config.Adsorption = isAdsorption;
 
-            // 开启时立刻贴一次边，不用等下次拖动
             if (isAdsorption)
+            {
+                // 开启时立刻贴一次边，不用等下次拖动
                 ApplyAdsorption();
+            }
+            else
+            {
+                // 关掉后忘掉贴边状态，免得下次改尺寸又自己贴回去
+                _snapState = SnapEdge.None;
+            }
         }
     }
 }

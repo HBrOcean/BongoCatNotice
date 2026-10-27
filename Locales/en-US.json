@@ -56,7 +56,8 @@
                 "Adsorption": "Automatically snap to the edge of the taskbar when near it (Windows only)",
                 "RandomSkin": "Automatically switch skins at regular intervals",
                 "Home": "Open the project homepage",
-                "Update": "Open the latest version release page"
+                "Update": "Open the latest version release page",
+                "Glass": "Frosted translucent panel that reveals the wallpaper behind. Falls back to plain translucency when the system has no blur"
             },
             "Background": "Background",
             "BgYellowOrange": "Yellow → Orange",
@@ -65,7 +66,31 @@
             "BgStart": "Start color",
             "BgEnd": "End color",
             "BgHint": "Accepts #RRGGBB or #AARRGGBB, applied and saved immediately",
-            "Hotkey": "Hotkey"
+            "Hotkey": "Hotkey",
+            "Glass": "Liquid glass"
+        },
+        "Reminder": {
+            "Header": "Reminders",
+            "Hint": "The cat pops a card when it's time",
+            "Add": "+ Add",
+            "Empty": "No reminders yet. Tap Add to create one.",
+            "DefaultTitle": "Reminder",
+            "Enabled": "On",
+            "RepeatDaily": "Daily",
+            "RepeatWeekday": "Weekdays",
+            "RepeatOnce": "Once",
+            "Test": "Preview",
+            "ToolTip": {
+                "Time": "24-hour format, e.g. 09:30",
+                "Title": "Title of this reminder",
+                "Message": "Body text of this reminder",
+                "AutoClose": "Auto-dismiss after N seconds; — means manual close",
+                "Delete": "Delete this reminder",
+                "Test": "Pop it once to preview",
+                "Master": "Turn off to pause all reminders; individual settings are kept"
+            },
+            "Master": "Reminders",
+            "OffHint": "Reminders are paused. Nothing will pop until you turn it back on."
         }
     }
 }

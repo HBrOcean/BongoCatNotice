@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:BongoCatNotice.ViewModels"
         xmlns:utilities="clr-namespace:BongoCatNotice.Utilities"
+        xmlns:models="clr-namespace:BongoCatNotice.Models"
         x:DataType="viewModels:SettingViewModel"
         x:Class="BongoCatNotice.Views.SettingWindow"
         Title="{Binding Source={x:Static utilities:GlobalHelper.Name}}"
@@ -59,230 +60,473 @@
                 </ControlTemplate>
             </Setter>
         </Style>
+        <Style Selector="Button.tool">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#7A5A3A"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+        <Style Selector="Button.tool /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.tool:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2AB86C3A"/>
+        </Style>
+
+        <!-- 玻璃模式下，未选中的标签文字在浅色雾面上会发飘，压深一点 -->
+        <Style Selector="TabControl.glass TabItem">
+            <Setter Property="Foreground" Value="#5A4632" />
+        </Style>
+        <Style Selector="TabControl.glass TabItem:selected">
+            <Setter Property="Foreground" Value="#3A2A18" />
+        </Style>
+
+        <!-- 玻璃模式下卡片再透一点，否则白雾叠白底会糊成一片 -->
+        <Style Selector="TabControl.glass Border.reminder-card">
+            <Setter Property="Background" Value="#C2FFFFFF"/>
+            <Setter Property="BoxShadow" Value="0 2 7 0 #145A4020"/>
+        </Style>
+
+        <!-- 卡片只保留一层背景+极轻投影，不画边框，避免与内部控件形成"框套框" -->
+        <Style Selector="Border.reminder-card">
+            <Setter Property="Background" Value="#F2FFFFFF"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Margin" Value="0,0,0,9"/>
+            <Setter Property="BoxShadow" Value="0 2 7 0 #1A5A4020"/>
+        </Style>
+
+        <!-- 卡片里的输入框全部去框，避免"卡片里再套白框" -->
+        <Style Selector="Border.reminder-card TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="2,2"/>
+            <Setter Property="MinHeight" Value="24"/>
+        </Style>
+        <Style Selector="Border.reminder-card TextBox /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Border.reminder-card TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#1FB86C3A"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Border.reminder-card TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#24B86C3A"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- 两个下拉框改成淡淡的胶囊底，不再画方框 -->
+        <Style Selector="Border.reminder-card ComboBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="7,1"/>
+            <Setter Property="MinHeight" Value="24"/>
+        </Style>
+        <Style Selector="Border.reminder-card ComboBox /template/ Border#Background">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="10"/>
+        </Style>
+        <Style Selector="Border.reminder-card ComboBox:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="#14B86C3A"/>
+        </Style>
+
+        <!-- 时间用等宽粗体，标题常规，正文小一号灰字 -->
+        <Style Selector="Border.reminder-card TextBox.time">
+            <Setter Property="FontFamily" Value="Consolas, Menlo, monospace"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Border.reminder-card TextBox.title">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Border.reminder-card TextBox.body">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#8A7660"/>
+        </Style>
+
+        <!-- 删除按钮做成极轻的圆形，别再加一个方块 -->
+        <Style Selector="Border.reminder-card Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="7,2"/>
+            <Setter Property="MinWidth" Value="26"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Border.reminder-card Button /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Border.reminder-card Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#30C0553A"/>
+        </Style>
     </Window.Styles>
 
-    <TabControl x:Name="NavigationTabs">
-        <TabControl.Styles>
-            <Style Selector="TabItem">
-                <Setter Property="FontSize" Value="20"/>
-            </Style>
-        </TabControl.Styles>
+    <Panel>
+        <Border x:Name="GlassLayer"
+                IsVisible="False"
+                Background="Transparent" />
 
-        <TabItem Header="{Binding DefaultSkinText}"
-                 FontSize="12">
-            <DockPanel>
-                <TextBox x:Name="SearchBox"
-                         DockPanel.Dock="Top"
-                         Margin="5,8,12,0"
-                         FontSize="12"
-                         Watermark="{Binding SearchPlaceholderText}"
-                         TextChanged="OnSearchTextChanged"/>
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="-5,0,0,0">
-                    <WrapPanel x:Name="DefaultSkinList" Margin="5,10,0,10" Orientation="Horizontal"></WrapPanel>
+        <TabControl x:Name="NavigationTabs">
+            <TabControl.Styles>
+                <Style Selector="TabItem">
+                    <Setter Property="FontSize" Value="20"/>
+                </Style>
+            </TabControl.Styles>
+
+            <TabItem Header="{Binding DefaultSkinText}"
+                     FontSize="12">
+                <DockPanel>
+                    <TextBox x:Name="SearchBox"
+                             DockPanel.Dock="Top"
+                             Margin="5,8,12,0"
+                             FontSize="12"
+                             Watermark="{Binding SearchPlaceholderText}"
+                             TextChanged="OnSearchTextChanged"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="-5,0,0,0">
+                        <WrapPanel x:Name="DefaultSkinList" Margin="5,10,0,10" Orientation="Horizontal"></WrapPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="{Binding CustomSkinText}"
+                     FontSize="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <WrapPanel x:Name="CustomSkinList" Margin="0,10" Orientation="Horizontal">
+                        <TextBlock Text="{Binding EmptySkinText}"
+                           FontSize="12"
+                           Foreground="Gray"/>
+                    </WrapPanel>
                 </ScrollViewer>
-            </DockPanel>
-        </TabItem>
+            </TabItem>
 
-        <TabItem Header="{Binding CustomSkinText}"
-                 FontSize="12">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <WrapPanel x:Name="CustomSkinList" Margin="0,10" Orientation="Horizontal">
-                    <TextBlock Text="{Binding EmptySkinText}"
-                       FontSize="12"
-                       Foreground="Gray"/>
-                </WrapPanel>
-            </ScrollViewer>
-        </TabItem>
-
-        <TabItem Header="{Binding SettingText}"
-                 FontSize="12">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="0,10,0,20" RenderOptions.BitmapInterpolationMode="HighQuality">
-                    <TextBlock Text="{Binding SystemSettingText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
-                    <DockPanel>
-                        <Label Content="{Binding LanguageText}"
-                               ToolTip.Placement="Top"
-                               ToolTip.VerticalOffset="0"
-                               ToolTip.Tip="{Binding LanguageToolTipText}"
-                               VerticalAlignment="Center"/>
-                        <ComboBox x:Name="LangListComboBox"
-                                  Margin="10,0,25,0"
-                                  HorizontalAlignment="Stretch"
-                                  ToolTip.Placement="Top"
-                                  ToolTip.VerticalOffset="0"
-                                  ToolTip.Tip="{Binding LanguageToolTipText}"
-                                  SelectionChanged="OnLangListSelectionChanged"/>
-                    </DockPanel>
-                    <DockPanel>
-                        <Label Content="{Binding HotkeyText}" VerticalAlignment="Center"/>
-                        <ComboBox x:Name="HotkeyComboBox"
-                                  Margin="10,0,25,0"
-                                  HorizontalAlignment="Stretch"
-                                  SelectionChanged="OnHotkeyChanged">
-                            <ComboBoxItem Content="Ctrl + Y"/>
-                            <ComboBoxItem Content="Ctrl + U"/>
-                            <ComboBoxItem Content="Ctrl + I"/>
-                            <ComboBoxItem Content="Ctrl + O"/>
-                            <ComboBoxItem Content="Ctrl + P"/>
-                            <ComboBoxItem Content="Ctrl + L"/>
-                        </ComboBox>
-                    </DockPanel>
-                    <CheckBox Content="{Binding TopmostText}"
-                              IsChecked="{Binding TopmostValue}"
-                              ToolTip.Placement="Top"
-                              ToolTip.VerticalOffset="0"
-                              ToolTip.Tip="{Binding TopmostToolTipText}"
-                              Click="OnTopmostClicked"/>
-                    <CheckBox Content="{Binding MousePenetrationText}"
-                              IsEnabled="{Binding IsWindows}"
-                              IsChecked="{Binding MousePenetrationValue}"
-                              ToolTip.Placement="Top"
-                              ToolTip.VerticalOffset="0"
-                              ToolTip.Tip="{Binding MousePenetrationToolTipText}"
-                              Click="OnMousePenetrationClicked"/>
-                    <CheckBox Content="{Binding AutorunText}"
-                              IsChecked="{Binding AutorunValue}"
-                              ToolTip.Placement="Top"
-                              ToolTip.VerticalOffset="0"
-                              ToolTip.Tip="{Binding AutorunToolTipText}"
-                              Click="OnAutorunClicked"/>
-                    <CheckBox Content="{Binding TaskbarIconText}"
-                              IsChecked="{Binding TaskbarIconValue}"
-                              ToolTip.Placement="Top"
-                              ToolTip.VerticalOffset="0"
-                              ToolTip.Tip="{Binding TaskbarIconToolTipText}"
-                              Click="OnTaskbarIconClicked"/>
-
-                    <TextBlock Text="{Binding VisualsText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
-                    <CheckBox Content="{Binding FlipText}"
-                              IsChecked="{Binding FlipValue}"
-                              ToolTip.Placement="Top"
-                              ToolTip.VerticalOffset="0"
-                              ToolTip.Tip="{Binding FlipToolTipText}"
-                              Click="OnFlipClicked"/>
-                    <DockPanel>
-                        <Label Content="{Binding ZoomText}"
-                               ToolTip.Placement="Top"
-                               ToolTip.VerticalOffset="0"
-                               ToolTip.Tip="{Binding ZoomToolTipText}"
-                               VerticalAlignment="Center"/>
-                        <ComboBox SelectedIndex="{Binding ZoomValue}"
-                                  Margin="10,0,25,0"
-                                  HorizontalAlignment="Stretch"
-                                  ToolTip.Placement="Top"
-                                  ToolTip.VerticalOffset="0"
-                                  ToolTip.Tip="{Binding ZoomToolTipText}"
-                                  SelectionChanged="OnZoomSelectionChanged">
-                            <ComboBoxItem Content="25%"></ComboBoxItem>
-                            <ComboBoxItem Content="37.5%"></ComboBoxItem>
-                            <ComboBoxItem Content="50%"></ComboBoxItem>
-                            <ComboBoxItem Content="62.5%"></ComboBoxItem>
-                            <ComboBoxItem Content="75%"></ComboBoxItem>
-                            <ComboBoxItem Content="100%"></ComboBoxItem>
-                            <ComboBoxItem Content="111%"></ComboBoxItem>
-                        </ComboBox>
-                    </DockPanel>
-                    <CheckBox Content="{Binding BobbingText}"
-                              IsChecked="{Binding BobbingValue}"
-                              ToolTip.Placement="Top"
-                              ToolTip.VerticalOffset="0"
-                              ToolTip.Tip="{Binding BobbingToolTipText}"
-                              Click="OnBobbingClicked"/>
-
-                    <TextBlock Text="{Binding InteractionText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
-                    <CheckBox Content="{Binding DisableDragText}"
-                              IsChecked="{Binding DisableDragValue}"
-                              ToolTip.Placement="Top"
-                              ToolTip.VerticalOffset="0"
-                              ToolTip.Tip="{Binding DisableDragToolTipText}"
-                              Click="OnDisableDragClicked"/>
-                    <CheckBox Content="{Binding AdsorptionText}"
-                              IsChecked="{Binding AdsorptionValue}"
-                              ToolTip.Placement="Top"
-                              ToolTip.VerticalOffset="0"
-                              ToolTip.Tip="{Binding AdsorptionToolTipText}"
-                              Click="OnAdsorptionClicked"/>
-
-                    <TextBlock Text="{Binding RandomText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
-                    <DockPanel>
-                        <Label Content="{Binding RandomSkinText}"
-                               ToolTip.Placement="Top"
-                               ToolTip.VerticalOffset="0"
-                               ToolTip.Tip="{Binding RandomSkinToolTipText}"
-                               VerticalAlignment="Center"/>
-                        <ComboBox x:Name="RandomSkinComboBox"
-                                  SelectedIndex="{Binding RandomSkinValue}"
-                                  Margin="10,0,25,0"
-                                  HorizontalAlignment="Stretch"
-                                  ToolTip.Placement="Top"
-                                  ToolTip.VerticalOffset="0"
-                                  ToolTip.Tip="{Binding RandomSkinToolTipText}"
-                                  SelectionChanged="OnRandomSkinSelectionChanged">
-                            <ComboBoxItem Content="{Binding NeverText}"></ComboBoxItem>
-                            <ComboBoxItem Content="{Binding OneMinuteText}"></ComboBoxItem>
-                            <ComboBoxItem Content="{Binding ThreeMinutesText}"></ComboBoxItem>
-                            <ComboBoxItem Content="{Binding FiveMinutesText}"></ComboBoxItem>
-                            <ComboBoxItem Content="{Binding FifteenMinutesText}"></ComboBoxItem>
-                            <ComboBoxItem Content="{Binding ThirtyMinutesText}"></ComboBoxItem>
-                        </ComboBox>
-                    </DockPanel>
-
-                    <TextBlock Text="{Binding BackgroundText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
-                    <DockPanel>
-                        <ComboBox x:Name="BackgroundThemeComboBox"
-                                  Margin="0,0,25,0"
-                                  HorizontalAlignment="Stretch"
-                                  SelectionChanged="OnBackgroundThemeChanged">
-                            <ComboBoxItem Content="{Binding BgYellowOrangeText}"></ComboBoxItem>
-                            <ComboBoxItem Content="{Binding BgBlueWhiteText}"></ComboBoxItem>
-                            <ComboBoxItem Content="{Binding BgCustomText}"></ComboBoxItem>
-                        </ComboBox>
-                    </DockPanel>
-
-                    <StackPanel x:Name="CustomColorPanel" IsVisible="False" Margin="0,8,25,0">
+            <TabItem Header="{Binding SettingText}"
+                     FontSize="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,10,0,20" RenderOptions.BitmapInterpolationMode="HighQuality">
+                        <TextBlock Text="{Binding SystemSettingText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
                         <DockPanel>
-                            <Label Content="{Binding BgStartText}" VerticalAlignment="Center"/>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                                        Spacing="8" VerticalAlignment="Center">
-                                <Border x:Name="BgStartPreview" Width="26" Height="22"
-                                        CornerRadius="3" BorderBrush="#888888" BorderThickness="1"/>
-                                <TextBox x:Name="BgStartBox" Width="96" FontSize="12"
-                                         TextChanged="OnBackgroundColorChanged"/>
-                            </StackPanel>
+                            <Label Content="{Binding LanguageText}"
+                                   ToolTip.Placement="Top"
+                                   ToolTip.VerticalOffset="0"
+                                   ToolTip.Tip="{Binding LanguageToolTipText}"
+                                   VerticalAlignment="Center"/>
+                            <ComboBox x:Name="LangListComboBox"
+                                      Margin="10,0,25,0"
+                                      HorizontalAlignment="Stretch"
+                                      ToolTip.Placement="Top"
+                                      ToolTip.VerticalOffset="0"
+                                      ToolTip.Tip="{Binding LanguageToolTipText}"
+                                      SelectionChanged="OnLangListSelectionChanged"/>
                         </DockPanel>
-                        <DockPanel Margin="0,6,0,0">
-                            <Label Content="{Binding BgEndText}" VerticalAlignment="Center"/>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                                        Spacing="8" VerticalAlignment="Center">
-                                <Border x:Name="BgEndPreview" Width="26" Height="22"
-                                        CornerRadius="3" BorderBrush="#888888" BorderThickness="1"/>
-                                <TextBox x:Name="BgEndBox" Width="96" FontSize="12"
-                                         TextChanged="OnBackgroundColorChanged"/>
-                            </StackPanel>
+                        <DockPanel>
+                            <Label Content="{Binding HotkeyText}" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="HotkeyComboBox"
+                                      Margin="10,0,25,0"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnHotkeyChanged">
+                                <ComboBoxItem Content="Ctrl + Y"/>
+                                <ComboBoxItem Content="Ctrl + U"/>
+                                <ComboBoxItem Content="Ctrl + I"/>
+                                <ComboBoxItem Content="Ctrl + O"/>
+                                <ComboBoxItem Content="Ctrl + P"/>
+                                <ComboBoxItem Content="Ctrl + L"/>
+                            </ComboBox>
                         </DockPanel>
-                        <TextBlock Text="{Binding BgHintText}" FontSize="11"
-                                   Foreground="#8A8070" Margin="0,6,0,0" TextWrapping="Wrap"/>
-                    </StackPanel>
+                        <CheckBox Content="{Binding TopmostText}"
+                                  IsChecked="{Binding TopmostValue}"
+                                  ToolTip.Placement="Top"
+                                  ToolTip.VerticalOffset="0"
+                                  ToolTip.Tip="{Binding TopmostToolTipText}"
+                                  Click="OnTopmostClicked"/>
+                        <CheckBox Content="{Binding MousePenetrationText}"
+                                  IsEnabled="{Binding IsWindows}"
+                                  IsChecked="{Binding MousePenetrationValue}"
+                                  ToolTip.Placement="Top"
+                                  ToolTip.VerticalOffset="0"
+                                  ToolTip.Tip="{Binding MousePenetrationToolTipText}"
+                                  Click="OnMousePenetrationClicked"/>
+                        <CheckBox Content="{Binding AutorunText}"
+                                  IsChecked="{Binding AutorunValue}"
+                                  ToolTip.Placement="Top"
+                                  ToolTip.VerticalOffset="0"
+                                  ToolTip.Tip="{Binding AutorunToolTipText}"
+                                  Click="OnAutorunClicked"/>
+                        <CheckBox Content="{Binding TaskbarIconText}"
+                                  IsChecked="{Binding TaskbarIconValue}"
+                                  ToolTip.Placement="Top"
+                                  ToolTip.VerticalOffset="0"
+                                  ToolTip.Tip="{Binding TaskbarIconToolTipText}"
+                                  Click="OnTaskbarIconClicked"/>
+
+                        <TextBlock Text="{Binding VisualsText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
+                        <CheckBox Content="{Binding FlipText}"
+                                  IsChecked="{Binding FlipValue}"
+                                  ToolTip.Placement="Top"
+                                  ToolTip.VerticalOffset="0"
+                                  ToolTip.Tip="{Binding FlipToolTipText}"
+                                  Click="OnFlipClicked"/>
+                        <DockPanel>
+                            <Label Content="{Binding ZoomText}"
+                                   ToolTip.Placement="Top"
+                                   ToolTip.VerticalOffset="0"
+                                   ToolTip.Tip="{Binding ZoomToolTipText}"
+                                   VerticalAlignment="Center"/>
+                            <ComboBox SelectedIndex="{Binding ZoomValue}"
+                                      Margin="10,0,25,0"
+                                      HorizontalAlignment="Stretch"
+                                      ToolTip.Placement="Top"
+                                      ToolTip.VerticalOffset="0"
+                                      ToolTip.Tip="{Binding ZoomToolTipText}"
+                                      SelectionChanged="OnZoomSelectionChanged">
+                                <ComboBoxItem Content="25%"></ComboBoxItem>
+                                <ComboBoxItem Content="37.5%"></ComboBoxItem>
+                                <ComboBoxItem Content="50%"></ComboBoxItem>
+                                <ComboBoxItem Content="62.5%"></ComboBoxItem>
+                                <ComboBoxItem Content="75%"></ComboBoxItem>
+                                <ComboBoxItem Content="100%"></ComboBoxItem>
+                                <ComboBoxItem Content="111%"></ComboBoxItem>
+                            </ComboBox>
+                        </DockPanel>
+                        <CheckBox Content="{Binding BobbingText}"
+                                  IsChecked="{Binding BobbingValue}"
+                                  ToolTip.Placement="Top"
+                                  ToolTip.VerticalOffset="0"
+                                  ToolTip.Tip="{Binding BobbingToolTipText}"
+                                  Click="OnBobbingClicked"/>
+
+                        <TextBlock Text="{Binding InteractionText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
+                        <CheckBox Content="{Binding DisableDragText}"
+                                  IsChecked="{Binding DisableDragValue}"
+                                  ToolTip.Placement="Top"
+                                  ToolTip.VerticalOffset="0"
+                                  ToolTip.Tip="{Binding DisableDragToolTipText}"
+                                  Click="OnDisableDragClicked"/>
+                        <CheckBox Content="{Binding AdsorptionText}"
+                                  IsChecked="{Binding AdsorptionValue}"
+                                  ToolTip.Placement="Top"
+                                  ToolTip.VerticalOffset="0"
+                                  ToolTip.Tip="{Binding AdsorptionToolTipText}"
+                                  Click="OnAdsorptionClicked"/>
+
+                        <TextBlock Text="{Binding RandomText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
+                        <DockPanel>
+                            <Label Content="{Binding RandomSkinText}"
+                                   ToolTip.Placement="Top"
+                                   ToolTip.VerticalOffset="0"
+                                   ToolTip.Tip="{Binding RandomSkinToolTipText}"
+                                   VerticalAlignment="Center"/>
+                            <ComboBox x:Name="RandomSkinComboBox"
+                                      SelectedIndex="{Binding RandomSkinValue}"
+                                      Margin="10,0,25,0"
+                                      HorizontalAlignment="Stretch"
+                                      ToolTip.Placement="Top"
+                                      ToolTip.VerticalOffset="0"
+                                      ToolTip.Tip="{Binding RandomSkinToolTipText}"
+                                      SelectionChanged="OnRandomSkinSelectionChanged">
+                                <ComboBoxItem Content="{Binding NeverText}"></ComboBoxItem>
+                                <ComboBoxItem Content="{Binding OneMinuteText}"></ComboBoxItem>
+                                <ComboBoxItem Content="{Binding ThreeMinutesText}"></ComboBoxItem>
+                                <ComboBoxItem Content="{Binding FiveMinutesText}"></ComboBoxItem>
+                                <ComboBoxItem Content="{Binding FifteenMinutesText}"></ComboBoxItem>
+                                <ComboBoxItem Content="{Binding ThirtyMinutesText}"></ComboBoxItem>
+                            </ComboBox>
+                        </DockPanel>
+
+                        <TextBlock Text="{Binding BackgroundText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
+                        <DockPanel>
+                            <ComboBox x:Name="BackgroundThemeComboBox"
+                                      Margin="0,0,25,0"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnBackgroundThemeChanged">
+                                <ComboBoxItem Content="{Binding BgYellowOrangeText}"></ComboBoxItem>
+                                <ComboBoxItem Content="{Binding BgBlueWhiteText}"></ComboBoxItem>
+                                <ComboBoxItem Content="{Binding BgCustomText}"></ComboBoxItem>
+                            </ComboBox>
+                        </DockPanel>
+
+                        <StackPanel x:Name="CustomColorPanel" IsVisible="False" Margin="0,8,25,0">
+                            <DockPanel>
+                                <Label Content="{Binding BgStartText}" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                            Spacing="8" VerticalAlignment="Center">
+                                    <Border x:Name="BgStartPreview" Width="26" Height="22"
+                                            CornerRadius="3" BorderBrush="#888888" BorderThickness="1"/>
+                                    <TextBox x:Name="BgStartBox" Width="96" FontSize="12"
+                                             TextChanged="OnBackgroundColorChanged"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <DockPanel Margin="0,6,0,0">
+                                <Label Content="{Binding BgEndText}" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                            Spacing="8" VerticalAlignment="Center">
+                                    <Border x:Name="BgEndPreview" Width="26" Height="22"
+                                            CornerRadius="3" BorderBrush="#888888" BorderThickness="1"/>
+                                    <TextBox x:Name="BgEndBox" Width="96" FontSize="12"
+                                             TextChanged="OnBackgroundColorChanged"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <TextBlock Text="{Binding BgHintText}" FontSize="11"
+                                       Foreground="#8A8070" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <CheckBox Content="{Binding GlassText}"
+                              IsChecked="{Binding GlassValue}"
+                              ToolTip.Placement="Top"
+                              ToolTip.VerticalOffset="0"
+                              ToolTip.Tip="{Binding GlassToolTipText}"
+                              Click="OnGlassClicked"/>
 
                     <TextBlock Text="{Binding VersionText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
-                    <TextBlock Text="{Binding Source={x:Static utilities:GlobalHelper.Version}}" Margin="0,0,0,10"/>
-                    <DockPanel>
-                        <Button Content="{Binding HomeText}"
-                                  ToolTip.Placement="Top"
-                                  ToolTip.VerticalOffset="0"
-                                  ToolTip.Tip="{Binding HomeToolTipText}"
-                                Click="OnHomeClicked"/>
-                        <Button Content="{Binding UpdateText}"
-                                  ToolTip.Placement="Top"
-                                  ToolTip.VerticalOffset="0"
-                                  ToolTip.Tip="{Binding UpdateToolTipText}"
-                                Click="OnUpdateClicked"/>
+                        <TextBlock Text="{Binding Source={x:Static utilities:GlobalHelper.Version}}" Margin="0,0,0,10"/>
+                        <DockPanel>
+                            <Button Content="{Binding HomeText}"
+                                      ToolTip.Placement="Top"
+                                      ToolTip.VerticalOffset="0"
+                                      ToolTip.Tip="{Binding HomeToolTipText}"
+                                    Click="OnHomeClicked"/>
+                            <Button Content="{Binding UpdateText}"
+                                      ToolTip.Placement="Top"
+                                      ToolTip.VerticalOffset="0"
+                                      ToolTip.Tip="{Binding UpdateToolTipText}"
+                                    Click="OnUpdateClicked"/>
+                        </DockPanel>
+
+                        <TextBlock Text="{Binding ExitAppText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
+                        <Button Content="{Binding ExitText}" Click="OnExitClicked"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="{Binding ReminderHeaderText}" FontSize="12">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top" Margin="5,8,12,6">
+                        <Button x:Name="ReminderAddButton"
+                                DockPanel.Dock="Right"
+                                Classes="tool"
+                                Content="{Binding ReminderAddText}"
+                                FontSize="12"
+                                Click="OnAddReminder"/>
+                        <Button x:Name="ReminderTestButton"
+                                DockPanel.Dock="Right"
+                                Classes="tool"
+                                Content="{Binding ReminderTestText}"
+                                FontSize="12"
+                                Margin="0,0,2,0"
+                                ToolTip.Tip="{Binding ReminderTestToolTipText}"
+                                ToolTip.Placement="Top"
+                                Click="OnTestReminder"/>
+                        <ToggleSwitch x:Name="ReminderMasterSwitch"
+                                      Content="{Binding ReminderMasterText}"
+                                      IsChecked="{Binding RemindersOnValue}"
+                                      OnContent=""
+                                      OffContent=""
+                                      FontSize="12"
+                                      FontWeight="SemiBold"
+                                      MinWidth="0"
+                                      VerticalAlignment="Center"
+                                      ToolTip.Tip="{Binding ReminderMasterToolTipText}"
+                                      ToolTip.Placement="Top"
+                                      IsCheckedChanged="OnReminderMasterChanged"/>
                     </DockPanel>
 
-                    <TextBlock Text="{Binding ExitAppText}" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
-                    <Button Content="{Binding ExitText}" Click="OnExitClicked"/>
-                </StackPanel>
-            </ScrollViewer>
-        </TabItem>
-    </TabControl>
+                    <TextBlock x:Name="ReminderOffHint"
+                               DockPanel.Dock="Top"
+                               Text="{Binding ReminderOffHintText}"
+                               FontSize="11"
+                               Foreground="#B0603E"
+                               TextWrapping="Wrap"
+                               Margin="8,0,12,6"
+                               IsVisible="False"/>
+
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="{Binding ReminderEmptyText}"
+                               FontSize="12"
+                               Foreground="Gray"
+                               TextWrapping="Wrap"
+                               Margin="5,10,12,0"
+                               IsVisible="{Binding !HasReminders}"/>
+
+                    <ScrollViewer x:Name="ReminderScroll" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="ReminderList"
+                                      ItemsSource="{Binding Reminders}"
+                                      Margin="5,4,12,12">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:ReminderItem">
+                                    <Border Classes="reminder-card">
+                                        <StackPanel Spacing="2">
+                                            <Grid ColumnDefinitions="66,*">
+                                                <TextBox Classes="time"
+                                                         Text="{Binding TimeText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                         MaxLength="5"
+                                                         Watermark="09:00"
+                                                         ToolTip.Tip="{Binding TimeTip}"
+                                                         ToolTip.Placement="Top"/>
+                                                <TextBox Grid.Column="1"
+                                                         Classes="title"
+                                                         Margin="6,0,0,0"
+                                                         MaxLength="24"
+                                                         Watermark="{Binding TitlePlaceholder}"
+                                                         Text="{Binding Title, Mode=TwoWay}"/>
+                                            </Grid>
+
+                                            <TextBox Classes="body"
+                                                     Margin="0,3,0,0"
+                                                     MaxLength="60"
+                                                     Watermark="{Binding MessagePlaceholder}"
+                                                     Text="{Binding Message, Mode=TwoWay}"/>
+
+                                            <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,7,0,0">
+                                                <ComboBox SelectedIndex="{Binding RepeatMode, Mode=TwoWay}"
+                                                          FontSize="12"
+                                                          MinWidth="78"
+                                                          MaxWidth="112">
+                                                    <ComboBoxItem Content="{Binding RepeatDailyLabel}"/>
+                                                    <ComboBoxItem Content="{Binding RepeatWeekdayLabel}"/>
+                                                    <ComboBoxItem Content="{Binding RepeatOnceLabel}"/>
+                                                </ComboBox>
+
+                                                <ComboBox Grid.Column="1"
+                                                          Margin="5,0,0,0"
+                                                          SelectedIndex="{Binding AutoCloseIndex, Mode=TwoWay}"
+                                                          FontSize="12"
+                                                          MinWidth="62"
+                                                          MaxWidth="82"
+                                                          ToolTip.Tip="{Binding AutoCloseTip}"
+                                                          ToolTip.Placement="Top">
+                                                    <ComboBoxItem Content="3s"/>
+                                                    <ComboBoxItem Content="5s"/>
+                                                    <ComboBoxItem Content="8s"/>
+                                                    <ComboBoxItem Content="15s"/>
+                                                    <ComboBoxItem Content="30s"/>
+                                                    <ComboBoxItem Content="—"/>
+                                                </ComboBox>
+
+                                                <CheckBox Grid.Column="2"
+                                                          Content="{Binding EnabledLabel}"
+                                                          IsChecked="{Binding Enabled, Mode=TwoWay}"
+                                                          FontSize="12"
+                                                          Margin="10,0,0,0"
+                                                          VerticalAlignment="Center"/>
+
+                                                <Button Grid.Column="3"
+                                                        Content="✕"
+                                                        FontSize="12"
+                                                        VerticalAlignment="Center"
+                                                        ToolTip.Tip="{Binding DeleteTip}"
+                                                        ToolTip.Placement="Top"
+                                                        Tag="{Binding}"
+                                                        Click="OnRemoveReminder"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </Panel>
 </Window>

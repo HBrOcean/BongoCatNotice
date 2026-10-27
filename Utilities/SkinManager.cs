@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -257,7 +258,24 @@ namespace BongoCatNotice.Utilities
             return [.. list];
         }
 
+        private string? _areaCacheKey;
+        private RectArea _areaCache = new(0, 0, 0, 0);
+
         public RectArea GetImageArea()
+        {
+            // 同一套皮肤 + 帽子算出来的可见区域是固定的，换装后才会变。
+            // 缓存一份，避免每次 SetWindowSize 都重新合成四帧再扫一遍。
+            string key = SkinId + "|" + HatId;
+            if (_areaCacheKey == key)
+                return _areaCache;
+
+            RectArea area = ComputeImageArea();
+            _areaCacheKey = key;
+            _areaCache = area;
+            return area;
+        }
+
+        private RectArea ComputeImageArea()
         {
             using SKBitmap baseBitmap = ToSKBitmap(_skinImage[0]);
             using SKBitmap twoBitmap = ToSKBitmap(_skinImage[1]);
@@ -305,55 +323,78 @@ namespace BongoCatNotice.Utilities
             using SKImage image = surface.Snapshot();
             using SKBitmap bitmap = SKBitmap.FromImage(image);
 
-            RectArea imageArea = new(bitmap.Width, bitmap.Height, 0, 0);
-            bool foundOpaquePixel = false;
+            int width = bitmap.Width;
+            int height = bitmap.Height;
+            if (width <= 0 || height <= 0)
+                return new RectArea(0, 0, 0, 0);
 
-            for (int y = 0; y < bitmap.Height; y++)
+            IntPtr pixels = bitmap.GetPixels();
+            if (pixels == IntPtr.Zero)
+                return new RectArea(0, 0, 0, 0);
+
+            // 一次性把像素拷进托管数组再扫。旧实现逐像素 GetPixel 是 65536 次 P/Invoke，
+            // 这里是 65536 次纯内存访问，快两个数量级。
+            int stride = width * 4;
+            byte[] buffer = new byte[stride * height];
+            Marshal.Copy(pixels, buffer, 0, buffer.Length);
+
+            int minX = width;
+            int minY = height;
+            int maxX = -1;
+            int maxY = -1;
+
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < bitmap.Width; x++)
+                int rowStart = y * stride;
+                for (int x = 0; x < width; x++)
                 {
-                    if (bitmap.GetPixel(x, y).Alpha != 0)
-                    {
-                        if (!foundOpaquePixel)
-                        {
-                            imageArea.X = x;
-                            imageArea.Y = y;
-                            imageArea.Width = x;
-                            imageArea.Height = y;
-                            foundOpaquePixel = true;
-                        }
-                        else
-                        {
-                            imageArea.X = Math.Min(imageArea.X, x);
-                            imageArea.Width = Math.Max(imageArea.Width, x);
-                            imageArea.Y = Math.Min(imageArea.Y, y);
-                            imageArea.Height = Math.Max(imageArea.Height, y);
-                        }
-                    }
+                    if (buffer[rowStart + x * 4 + 3] == 0)
+                        continue;
+
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
                 }
             }
 
-            if (!foundOpaquePixel)
+            if (maxX < 0)
                 return new RectArea(0, 0, 0, 0);
 
-            imageArea.Width = imageArea.Width - imageArea.X + 1;
-            imageArea.Height = imageArea.Height - imageArea.Y + 1;
-
-            return imageArea;
+            return new RectArea(minX, minY, maxX - minX + 1, maxY - minY + 1);
         }
 
+        /// <summary>
+        /// Avalonia Bitmap → SKBitmap 直接拷像素。
+        /// 旧实现用 MemoryStream 走了一次 PNG 编码 + 解码，单张 256×256 要几毫秒，
+        /// GetImageArea 一次要转 5 张，换装时能明显感觉到停顿。
+        /// </summary>
         private static SKBitmap ToSKBitmap(Bitmap bitmap)
         {
+            Avalonia.PixelSize size = bitmap.PixelSize;
+            if (size.Width <= 0 || size.Height <= 0)
+                throw new ArgumentException("Bitmap has empty size", nameof(bitmap));
+
+            SKColorType colorType = bitmap.Format == PixelFormat.Rgba8888
+                ? SKColorType.Rgba8888
+                : SKColorType.Bgra8888;
+
+            SKImageInfo info = new(size.Width, size.Height, colorType, SKAlphaType.Premul);
+            SKBitmap skBitmap = new(info);
+
             try
             {
-                using MemoryStream memoryStream = new();
-                bitmap.Save(memoryStream);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-                return SKBitmap.Decode(memoryStream);
+                bitmap.CopyPixels(
+                    new Avalonia.PixelRect(0, 0, size.Width, size.Height),
+                    skBitmap.GetPixels(),
+                    info.BytesSize,
+                    info.RowBytes);
+                return skBitmap;
             }
             catch (Exception ex)
             {
-                throw new Exception("Failed to convert Bitmap to SKBitmap via stream", ex);
+                skBitmap.Dispose();
+                throw new Exception("Failed to copy pixels into SKBitmap", ex);
             }
         }
     }

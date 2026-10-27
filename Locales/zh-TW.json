@@ -56,7 +56,8 @@
                 "Adsorption": "靠近系統工作列時自動吸附在工作列的邊緣，僅 Windows 系統可用",
                 "RandomSkin": "定時自動切換皮膚",
                 "Home": "開啟專案首頁",
-                "Update": "開啟最新版本發佈頁面"
+                "Update": "開啟最新版本發佈頁面",
+                "Glass": "面板變成半透明磨砂，能透出背後的桌布。系統不支援模糊時會退化為純半透明"
             },
             "Background": "介面背景",
             "BgYellowOrange": "黃橙漸層",
@@ -65,7 +66,31 @@
             "BgStart": "起始色",
             "BgEnd": "結束色",
             "BgHint": "支援 #RRGGBB 或 #AARRGGBB，修改後立即生效並儲存",
-            "Hotkey": "快速鍵"
+            "Hotkey": "快速鍵",
+            "Glass": "液態玻璃效果"
+        },
+        "Reminder": {
+            "Header": "提醒",
+            "Hint": "到點後貓貓會彈出提醒卡片",
+            "Add": "＋ 新增",
+            "Empty": "還沒有提醒，點右上角新增一筆",
+            "DefaultTitle": "提醒",
+            "Enabled": "啟用",
+            "RepeatDaily": "每天",
+            "RepeatWeekday": "工作日",
+            "RepeatOnce": "僅一次",
+            "Test": "預覽",
+            "ToolTip": {
+                "Time": "24 小時制，格式 09:30",
+                "Title": "提醒的標題",
+                "Message": "提醒的正文內容",
+                "AutoClose": "彈出後多久自動關閉，— 表示必須手動關閉",
+                "Delete": "刪除這筆提醒",
+                "Test": "立即彈一次看看效果",
+                "Master": "關掉後所有提醒都不再觸發，各自的設定會保留"
+            },
+            "Master": "定時提醒",
+            "OffHint": "提醒已暫停，到點不會彈出。單筆設定仍保留。"
         }
     }
 }
